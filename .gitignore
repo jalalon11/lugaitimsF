@@ -1,0 +1,31 @@
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+
+# Large files and directories
+/dist/xampp/mysql/data
+/dist/xampp/mysql/data - Copy
+/electron/dist
+/electron/node_modules
+/electron/php-runtime/*.zip
+
+# Any file larger than 50MB
+*.ibd
+*.asar
+*.exe

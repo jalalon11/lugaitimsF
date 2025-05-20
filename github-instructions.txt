@@ -1,0 +1,25 @@
+# Instructions to Connect to Your New GitHub Account
+
+1. Create a new repository on GitHub:
+   - Log in to your other GitHub account
+   - Click on the "+" icon in the top right corner and select "New repository"
+   - Name your repository (e.g., "lugaitims")
+   - Choose whether to make it public or private
+   - Do NOT initialize the repository with a README, .gitignore, or license
+   - Click "Create repository"
+
+2. After creating the repository, GitHub will show you the repository URL. It will look something like:
+   https://github.com/your-username/lugaitims.git
+
+3. Connect your local repository to the new GitHub repository by running these commands:
+   ```
+   git remote add origin https://github.com/your-username/lugaitims.git
+   git branch -M main
+   git push -u origin main
+   ```
+
+   Replace "your-username" with your actual GitHub username.
+
+4. When prompted, enter your GitHub username and password (or personal access token if you have 2FA enabled).
+
+Your code is now connected to your new GitHub account without any of the commit history from your previous GitHub account!
