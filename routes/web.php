@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\PurchasedItemsController;
 use App\Http\Controllers\DepartmentController;
@@ -78,6 +79,7 @@ Route::group(['middleware'=>['prevent-back-history']], function(){
         Route::get('/print/filter/report/page/{array}', [PrintController::class, 'filterPage']);
 
         Route::get('/datatables/requesting/items', [RequestingItemsController::class, 'datatable'])->name('datatables.requestingitems');
+        Route::get('/notifications', [NotificationController::class, 'getNotifications'])->name('notifications.get');
         Route::get('/requesting/items/notification', [RequestingItemsController::class, 'realtime_notification'])->name('requestingitems.notification');
         Route::get('/requesting/items/reset/notif', [RequestingItemsController::class, 'resetNotification'])->name('requestingitems.resetNotif');
         Route::get('/requesting/items/get/user/request/{id}', [RequestingItemsController::class, 'get_purchaserRequest']);
