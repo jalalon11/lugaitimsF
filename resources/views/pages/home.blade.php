@@ -78,7 +78,7 @@
                                             Bar Chart of Most Popular Items Requested by Each Category
                                             &nbsp;
                                             <select id="categorylist" class = "form-control" style="width: 30%; position: relative; display: inline-block">
-                                    
+
                                             </select>
                                     </div>
                                     <div class="card-body"><p id = "showcanva" style ="text-align: center; font-size: 20px; font-family: Consolas">PLEASE SELECT A CATEGORY TO DISPLAY THE CHART</p><canvas id="chart_purchasedItems" width="100%" height="40"></canvas></div>
@@ -110,12 +110,12 @@
                         </div>
                     </div>
                 </main>
-               
+
             </div>
         </div>
     @include('navigation/footer')
     <script>
-        document.title = "LSHS Dashboard"; 
+        document.title = "LSHS Dashboard";
         $(document).ready(function(){
             'use strict'
         var ticksStyle = {
@@ -123,7 +123,10 @@
             fontStyle: 'bold',
         }
         function argMax(array) {
-            return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
+            if (!array || array.length === 0) {
+                return 0; // Return default index if array is empty
+            }
+            return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r), [0, 0])[1];
         }
         var mode = 'index'
         var intersect = true
@@ -177,7 +180,7 @@
             },
             legend: {
             display: false,
-            
+
             },
             title: {
                 display: true, text: 'Items in Requesitioning Office'
@@ -239,7 +242,7 @@
                     {
                         var row = '<option style="text-align: center; font-weight: bold; background-color: #83b2b7; color: #000;" value="" disabled selected>Select Category Here</option>';
                         for (var i = 0; i < data.length; i++) {
-                            row += '<option>' + data[i].category + '</option>'; 
+                            row += '<option>' + data[i].category + '</option>';
                         }
                         $("#categorylist").html(row);
                     }
@@ -268,7 +271,10 @@
                         fontStyle: 'bold',
                     }
                     function argMax(array) {
-                        return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
+                        if (!array || array.length === 0) {
+                            return 0; // Return default index if array is empty
+                        }
+                        return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r), [0, 0])[1];
                     }
                     var mode = 'index'
                     var intersect = true
@@ -322,7 +328,7 @@
                         },
                         legend: {
                         display: false,
-                        
+
                         },
                         title: {
                             display: true, text: 'Items in '+value
@@ -369,7 +375,7 @@
                     }
                     })
 
-   
+
                 }
             })
         })
@@ -384,9 +390,12 @@
         };
 
         function argMax(array) {
-            return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r))[1];
+            if (!array || array.length === 0) {
+                return 0; // Return default index if array is empty
+            }
+            return array.map((x, i) => [x, i]).reduce((r, a) => (a[0] > r[0] ? a : r), [0, 0])[1];
         }
-        
+
         var mode = 'index';
         var intersect = true;
         var years_ofdeads = {{Js::From($years_ofReleasedLabel)}};

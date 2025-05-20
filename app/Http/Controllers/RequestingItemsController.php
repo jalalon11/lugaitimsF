@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RequestingItems;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Movements;
 class RequestingItemsController extends Controller
@@ -28,14 +28,14 @@ class RequestingItemsController extends Controller
         //                         and supplier_items.id = movements.supplieritem_id
         //                         and movements.user_id = users.id
         //                         and movements.user_id = '.$user_id.' and date_format(movements.created_at, "%m-%d-%Y") = "'.$dateRequest.'" and (movements.type = 3 || movements.type = 7) order by movements.created_at desc ');
-        $data = DB::select('SELECT DISTINCT 
-                                movements.status AS req_status, 
-                                items.*, 
-                                supplier_items.*, 
-                                suppliers.*, 
-                                movements.*, 
-                                users.*, 
-                                users.id AS purchaser_id, 
+        $data = DB::select('SELECT DISTINCT
+                                movements.status AS req_status,
+                                items.*,
+                                supplier_items.*,
+                                suppliers.*,
+                                movements.*,
+                                users.*,
+                                users.id AS purchaser_id,
                                 positions.*
                             FROM movements
                             LEFT JOIN users ON users.id = movements.user_id
@@ -48,7 +48,7 @@ class RequestingItemsController extends Controller
                                 AND movements.totalReleased <> 0
                             ORDER BY movements.created_at DESC
                                ');
-        
+
                                 return view('reports.requestingitems', compact('data'));
     }
     public function datatable()
@@ -60,7 +60,7 @@ class RequestingItemsController extends Controller
                     $html = "<button class = 'btn btn-warning btn-sm btn-flat view' data-user_id = ".$data['purchaser_id']." data-date = ".$data['dateRequest']." /><i class = 'fas fa-eye'>".$data['notification']."</i>";
                     if($data['notification'] == 0)
                     $html = "<button class = 'btn btn-primary btn-sm btn-flat view' data-user_id = ".$data['purchaser_id']." data-date = ".$data['dateRequest']." /><i class = 'fas fa-eye'>".$data['notification']."</i>";
-                    
+
                     return $html;
                 })
                 ->addColumn('dateRequest', function($data){
@@ -71,20 +71,20 @@ class RequestingItemsController extends Controller
                 ->make(true);
     }
     public function savePartial(Request $request)
-    {   
+    {
         $releasedItems = $request->releasedItems;
         for($i = 0; $i<count($releasedItems); $i++)
         {
             $movement = Movements::find($releasedItems[$i]['movement_id']);
             $totalReleased = $movement->totalReleased + (int) $releasedItems[$i]['totalReleased'];
 
-            
-            if($totalReleased == $movement->qty) 
+
+            if($totalReleased == $movement->qty)
             {
                 $movement->type = 3; //Fully Released
                 $movement->notification = 0;
             }
-            if($totalReleased < $movement->qty) 
+            if($totalReleased < $movement->qty)
             {
                 $movement->type = 7;//Partially Released
                 $movement->notification = 1;
@@ -108,10 +108,13 @@ class RequestingItemsController extends Controller
             if($y->age > 0)
             {
                 if($y->age >= $y->no_ofYears)
-                { 
+                {
                     DB::table('supplier_items')->where('id', $y->id)->update(array('status'=>0));
-                    $exists = Movements::where('supplieritem_id')->exists();
-                    DB::table('movements')->where('supplieritem_id', $y->id)->update(array('dateWasted'=>Carbon::now()));
+
+                    // Check if movements exist for this item and update them
+                    if (Movements::where('supplieritem_id', $y->id)->exists()) {
+                        DB::table('movements')->where('supplieritem_id', $y->id)->update(array('dateWasted'=>Carbon::now()));
+                    }
                 }
             }
         }
@@ -127,7 +130,7 @@ class RequestingItemsController extends Controller
             {
                 $movement = Movements::find($res->id);
                 $movement->notification = 0;
-                $movement->update;
+                $movement->update();
             }
         }
         return response()->json([
@@ -146,7 +149,7 @@ class RequestingItemsController extends Controller
     public function show(RequestingItems $requestingItems)
     {
         //
-    }   
+    }
     public function get_requestingItemsData()
     {
         $sql = DB::select('select distinct date_format(movements.created_at, "%m-%d-%Y") as dateRequest, user_id from movements order by date_format(movements.created_at, "%m-%d-%Y") desc');
