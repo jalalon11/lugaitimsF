@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\item;
-use App\Models\Supplier_Items as SupplierItem;
+use App\Models\Supplier_Items;
 use App\Models\Movements;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\Datatables\DataTables;
 use Illuminate\Support\Facades\Validator;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\RequestingItems;
@@ -30,7 +30,7 @@ class ItemController extends Controller
        return Datatables::of($this->get_requestedItems())
                 ->addColumn('status', function($row) {
                     $html = "<span class = 'badge badge-danger'>".$row->totalCancelled." CANCELLED</span>";
-                    if($row->type == 1) { 
+                    if($row->type == 1) {
                         $html = "<span class = 'badge badge-primary'>REQUESTING</span>";
                     }
                     elseif($row->type == 3) {
@@ -41,11 +41,11 @@ class ItemController extends Controller
                         $html = "<span class = 'badge badge-success'>".$row->totalReleased." RELEASED</span>
                                 <span class = 'badge badge-danger'>".$row->totalCancelled." CANCELLED</span>";
                     }
-                    elseif($row->type == 7) { 
+                    elseif($row->type == 7) {
                         $html = "<span class = 'badge badge-warning'>".$row->totalReleased." PARTIALLY RELEASED</span>
                                 <span class = 'badge badge-danger'>".$row->totalCancelled." CANCELLED</span>";
                     }
-                    return $html;  
+                    return $html;
                 })->rawColumns(['status'])->make(true);
     }
     public function get_allItemsInDatatables()
@@ -55,8 +55,8 @@ class ItemController extends Controller
                     $html = "";
                     if($row->status==0) $html = "<span class = 'badge badge-warning'>WASTED</span>";
                     if($row->status==1) $html = "<span class = 'badge badge-primary'>ACTIVE</span>";
-                    return $html;   
-                })   
+                    return $html;
+                })
                 ->addColumn('checkboxes', function($row){
                     $html = "<input class = 'checkboxes' style = 'width: 20px; height: 20px;' type = 'checkbox' name = 'itemCheck' id = 'itemCheck' data-supplieritem_id=".$row->supplieritem_id." value = '".$row->supplieritem_id."' />";
                     return $html;
@@ -81,7 +81,7 @@ class ItemController extends Controller
                     $html .= '<button type = "button" data-id = '.$row->supplieritem_id.' class = "btn  btn-flat btn-outline btn-secondary btn-sm view"><i class = "fas fa-xs fa-eye"></i>&nbsp;</button>&nbsp;';
                     $html .= "</td>";
                     return $html;
-                }) 
+                })
                 ->rawColumns(['type', 'checkboxes','actions', 'cost', 'totalCost', 'stock'])
                 ->make(true);
     }
@@ -89,7 +89,7 @@ class ItemController extends Controller
     {
         $sql = DB::select('SELECT date_format(supplier_items.date, "%m-%d-%Y")  as dateT, supplier_items.id as supplieritem_id, items.*, itemcategories.*, suppliers.*, supplier_items.*
                         FROM items, suppliers, supplier_items, itemcategories
-                        WHERE itemcategories.id = supplier_items.category_id 
+                        WHERE itemcategories.id = supplier_items.category_id
                         AND items.id = supplier_items.item_id
                         AND suppliers.id = supplier_items.supplier_id
                         ORDER BY date_format(supplier_items.date, "%m-%d-%Y") desc');
@@ -99,7 +99,7 @@ class ItemController extends Controller
     {
         $sql = DB::select('SELECT date_format(supplier_items.date, "%m-%d-%Y")  as date, supplier_items.id as supplieritem_id, items.*, itemcategories.*, suppliers.*, supplier_items.*
                         FROM items, suppliers, supplier_items, itemcategories
-                        WHERE itemcategories.id = supplier_items.category_id 
+                        WHERE itemcategories.id = supplier_items.category_id
                         AND items.id = supplier_items.item_id
                         AND suppliers.id = supplier_items.supplier_id
                         AND supplier_items.status = 1');
@@ -117,7 +117,7 @@ class ItemController extends Controller
     {
         $sql = DB::select('SELECT supplier_items.id as supplieritem_id, items.*, itemcategories.*, suppliers.*, supplier_items.*
                         FROM items, suppliers, supplier_items, itemcategories
-                        WHERE itemcategories.id = supplier_items.category_id 
+                        WHERE itemcategories.id = supplier_items.category_id
                         AND items.id = supplier_items.item_id
                         AND suppliers.id = supplier_items.supplier_id
                         AND supplier_items.status = 1');
@@ -139,7 +139,7 @@ class ItemController extends Controller
     }
     public function store(Request $request)
     {
-        $messages; $status="";
+        $messages = []; $status="";
         $validatedData = [
             'item'=>'required',
             'date'=>'required',
@@ -161,14 +161,14 @@ class ItemController extends Controller
         if($validator->fails())
         {
             $messages = $validator->messages();
-        }   
+        }
         else
         {
             $item = Item::where([
                 'item'=>$request->item,
                 'brand'=>$request->brand,
             ])->first();
-         
+
 
             $image_name = "";
             $image = "";
@@ -226,15 +226,15 @@ class ItemController extends Controller
                     $messages = "The item already exists!";
                 }
             }
-           
+
             if(is_null($request->item_id))
             {
-                $isExists = SupplierItem::where([
+                $isExists = Supplier_Items::where([
                     'item_id'=>$item_id,
                     'category_id'=>$request->itemcategory_id,
                     'supplier_id'=>$request->supplier,
                 ])->exists();
-                
+
                 if($isExists)
                 {
                     $item_id = $item->id;
@@ -243,8 +243,8 @@ class ItemController extends Controller
                     $messages = "The item already exists!";
                 }
             }
-           
-            $supplieritem = SupplierItem::updateOrCreate(['id'=>$request->supplieritem_id], [
+
+            $supplieritem = Supplier_Items::updateOrCreate(['id'=>$request->supplieritem_id], [
                 'supplier_id' => $request->supplier,
                 'item_id' => $item_id,
                 'date'=>$request->date,
@@ -252,19 +252,19 @@ class ItemController extends Controller
                 'modelnumber' => $request->modelnumber,
                 'stock' => $request->stock,
                 'no_ofYears' => $request->no_ofYears,
-                'category_id' => $request->itemcategory_id, 
-                'quantity' => $request->quantity, 
+                'category_id' => $request->itemcategory_id,
+                'quantity' => $request->quantity,
                 'cost' => $request->cost,
-                'totalCost' => $request->totalCost, 
+                'totalCost' => $request->totalCost,
                 'remarks' => $request->remarks,
                 'status'=>1,
             ]);
-            if($temp == 1) 
+            if($temp == 1)
             {
                 $status = false;
                 $messages = ['item'=>$messages,'brand'=>$messages];
             }
-            if($temp == 2) 
+            if($temp == 2)
             {
                 $status = false;
                 $messages = ['item'=>$messages,
@@ -272,7 +272,7 @@ class ItemController extends Controller
                             'itemcategory_id'=>$messages,
                             'supplier'=>$messages];
             }
-            else 
+            else
             {
                 $messages = "Item has been successfully saved!";
                 $status = true;
@@ -297,7 +297,7 @@ class ItemController extends Controller
      */
     public function show(item $item)
     {
-       
+
     }
 
     /**
@@ -307,29 +307,29 @@ class ItemController extends Controller
     {
         $sql = DB::select('SELECT TIMESTAMPDIFF(YEAR,supplier_items.date, CURDATE())  AS age, suppliers.contact_number as supp_contactNo, suppliers.id as supplier_id, items.*, itemcategories.*, suppliers.*, supplier_items.*, itemcategories.id as itemcategory_id, items.id as item_id, supplier_items.id as supplieritem_id, date_format(supplier_items.date, "%m-%d-%Y")  as date
                         FROM items, suppliers, supplier_items, itemcategories
-                        WHERE itemcategories.id = supplier_items.category_id 
+                        WHERE itemcategories.id = supplier_items.category_id
                         AND items.id = supplier_items.item_id
                         AND suppliers.id = supplier_items.supplier_id
                         AND supplier_items.id = '.$item_id.'');
 
         return response()->json($sql);
-    }   
+    }
 
     public function purchaserEdit($item_id)
     {
         $sql = DB::select('SELECT date_format(supplier_items.created_at, "%m-%d-%Y")  as transactedOn, suppliers.contact_number as supp_contactNo, suppliers.id as supplier_id, items.*, itemcategories.*, suppliers.*, supplier_items.*, itemcategories.id as itemcategory_id, items.id as item_id, supplier_items.id as supplieritem_id
                         FROM items, suppliers, supplier_items, itemcategories
-                        WHERE itemcategories.id = supplier_items.category_id 
+                        WHERE itemcategories.id = supplier_items.category_id
                         AND items.id = supplier_items.item_id
                         AND suppliers.id = supplier_items.supplier_id
                         AND supplier_items.id = '.$item_id.'');
-        
+
         $data = [
             'item'=>$sql,
             // 'requestItem'=>$requestItem,
         ];
         return response()->json($data);
-    }   
+    }
 
     public function get_RequestedItems()
     {
@@ -361,15 +361,15 @@ class ItemController extends Controller
      */
     public function destroy(item $item)
     {
-        $status=false; $message;
-        if($item !== null)  
+        $status=false; $message = "";
+        if($item !== null)
         {
             $item->delete();
             $status = true;
             $message = "Item has been successfully removed";
         }
         else $message = "Cannot find id or cannot be removed.";
-       
+
         return response()->json([
             'status'=>$status,
             'message'=>$message,
@@ -380,10 +380,10 @@ class ItemController extends Controller
         $selectedItems = $request->selecteditems;
         for($i = 0; $i<count($selectedItems); $i++)
         {
-            $supplieritem = SupplierItem::find($selectedItems[$i]['supplieritem_id']);
+            $supplieritem = Supplier_Items::find($selectedItems[$i]['supplieritem_id']);
             $supplieritem->stock = $supplieritem->stock-$selectedItems[$i]['itemQty'];
             $supplieritem->update();
-            
+
             Movements::create([
                 'supplieritem_id'=>$selectedItems[$i]['supplieritem_id'],
                 'user_id'=>Auth::user()->id,
