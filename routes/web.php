@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\PurchasedItemsController;
 use App\Http\Controllers\DepartmentController;
@@ -38,7 +39,7 @@ Route::group(['middleware'=>['prevent-back-history']], function(){
 
 
     Route::group(['middleware'=>['role']], function () {
-        Route::get('/get/categorizedChart', [HomeController::class, 'get_categorizedChart'])->name('categorizedChart');
+        Route::get('/get/categorizedChart', [DashboardController::class, 'get_categorizedChart'])->name('categorizedChart');
         Route::get('/admin/request/savePartial', [RequestingItemsController::class, 'savePartial']);
         Route::get('/item/categories/list', [ItemcategoryController::class, 'countItems'])->name('categorylist');
         Route::get('/users/get_allUsers', [ItemController::class, 'get_allUsersByJson'])->name('users.get_allUsers');
@@ -47,7 +48,7 @@ Route::group(['middleware'=>['prevent-back-history']], function(){
         Route::get('/items/brands', [ItemController::class, 'get_allBrands'])->name('items.brands');
         Route::get('/print/item/profile/{id}', [PrintController::class, 'itemprofile']);
 
-        Route::get('/home', [HomeController::class, 'index'])->name('admin.home');
+        Route::get('/home', [DashboardController::class, 'index'])->name('admin.home');
         Route::resource('items', ItemController::class);
         Route::resource('purchasedItems', PurchasedItemsController::class);
         Route::resource('departments', DepartmentController::class);
