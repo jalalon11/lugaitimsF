@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Models\Item;
 use App\Models\Supplier_Items;
 use App\Models\Movements;
@@ -59,11 +59,11 @@ class HomeController extends Controller
             FROM items
             INNER JOIN supplier_items on supplier_items.item_id = items.id
             INNER JOIN movements on movements.supplieritem_id = supplier_items.id WHERE QUARTER(movements.created_at) = "'.$year->quarters.'" and YEAR(movements.created_at) = "'.$year->years.'" ');
-            
+
             $values_ofReleased[] = $values[0]->total;
         }
 
-        return view('pages.home', compact('data', 'years_ofPurchasedLabel', 'values_ofPurchased', 'years_ofReleasedLabel', 'values_ofReleased'));       
+        return view('pages.home', compact('data', 'years_ofPurchasedLabel', 'values_ofPurchased', 'years_ofReleasedLabel', 'values_ofReleased'));
     }
     public function get_categorizedChart(Request $request)
     {
@@ -73,7 +73,7 @@ class HomeController extends Controller
             $years = DB::select('select supplier_items.id, items.item, suppliers.name from items, supplier_items, suppliers where items.id = supplier_items.item_id and suppliers.id = supplier_items.supplier_id and supplier_items.category_id = '.$category[0]->id.'');
             $years_ofPurchasedLabel = [];
             $values_ofPurchased = [];
-            
+
             foreach($years as $year)
             {
                 $years_ofPurchasedLabel[] = $year->item." - ".$year->name;
@@ -99,7 +99,7 @@ class HomeController extends Controller
     }
     public function get_allYears()
     {
-        $sql = DB::select('SELECT DISTINCT YEAR(date) as year 
+        $sql = DB::select('SELECT DISTINCT YEAR(date) as year
                         FROM movements');
         return $sql;
     }
@@ -121,9 +121,9 @@ class HomeController extends Controller
     }
     /**
      * Show the form for creating a new resource.
-     */ 
+     */
     public function create()
-    { 
+    {
         //
     }
 
