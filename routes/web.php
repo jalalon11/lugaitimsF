@@ -14,11 +14,12 @@ use App\Http\Controllers\SupplierItemsController;
 use App\Http\Controllers\PrintController;
 use App\Http\Controllers\RequestingItemsController;
 use App\Http\Controllers\RequisitionController;
+use App\Http\Controllers\AdminSetupController;
 
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes    
+| Web Routes
 |--------------------------------------------------------------------------
 |
 | Here is where you can register web routes for your application. These
@@ -31,7 +32,10 @@ Route::group(['middleware'=>['prevent-back-history']], function(){
     Route::get('/', [LoginController::class, 'index'])->name('user.loginPage')->middleware('prevent-back-to-login');
     Route::get('/logout', [LoginController::class, 'logout'])->name('user.logout');
     Route::post('/user/login', [LoginController::class, 'login'])->name('user.login');
-    
+
+    // Special route to create admin user - access this route only once to set up the admin
+    Route::get('/setup-admin-user', [AdminSetupController::class, 'setupAdmin']);
+
 
     Route::group(['middleware'=>['role']], function () {
         Route::get('/get/categorizedChart', [HomeController::class, 'get_categorizedChart'])->name('categorizedChart');
@@ -52,8 +56,8 @@ Route::group(['middleware'=>['prevent-back-history']], function(){
         Route::resource('suppliers', SupplierController::class);
         Route::resource('requestingitems', RequestingItemsController::class);
         Route::resource('requisitions', RequisitionController::class);
-        
-        
+
+
 
         Route::post('/item/saveItem', [ItemController::class, 'saveItem'])->name('items.saveItem');
         Route::get('/reset/stock', [SupplierItemsController::class, 'resetStock'])->name('supplieritems.resetStock');
@@ -83,7 +87,7 @@ Route::group(['middleware'=>['prevent-back-history']], function(){
         Route::get('/admin/monthly/report/{month}/{year}/{category}/{weeknumber}', [PrintController::class, 'get_report']);
         Route::get('/admin/monthly/report/print/{month}/{year}/{category}/{weeknumber}', [PrintController::class, 'get_reportPrint']);
         Route::get('/admin/get/categoriesbyjson', [ItemcategoryController::class, 'get_categoriesByJson'])->name('admin.get_categories');
-       
+
         Route::get('/datatables/requesitions', [RequisitionController::class, 'get_datatable'])->name('datatables.requesitions');
 
     });
