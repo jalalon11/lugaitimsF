@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\supplier_items;
+use App\Models\Supplier_Items;
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
 use App\Models\Movements;
 use Carbon\Carbon;
 class SupplierItemsController extends Controller
@@ -27,27 +27,27 @@ class SupplierItemsController extends Controller
     }
     public function reTypeItem(Request $request)
     {
-      
+
         $item_ids = $request->items;
         $req_id = $request->req_id;
         $remarks = "Pending";
-        if($request->selected_itemtype === "S1") 
+        if($request->selected_itemtype === "S1")
         {
             DB::table('supplier_items')->whereIn('id', $item_ids)->update(array('status' => 1));
         }
-        if($request->selected_itemtype === "S0") 
+        if($request->selected_itemtype === "S0")
         {
             DB::table('supplier_items')->whereIn('id', $item_ids)->update(array('status' => 0));
         }
-        if($request->selected_itemtype == 2) 
+        if($request->selected_itemtype == 2)
         {
             DB::table('movements')->whereIn('id', $item_ids)->update(array('type' => $request->selected_itemtype, 'datePurchased'=>Carbon::now()));
         }
         if($request->selected_itemtype == 3){
-         
+
             DB::table('movements')->whereIn('id', $item_ids)->update(array('dateReleased'=>Carbon::now(), 'type'=>3));
             // if($request->supplieritem_ids !== null)
-            // { 
+            // {
             //     for($i = 0; $i<count($request->supplieritem_ids); $i++)
             //     {
             //         if($request->types[$i] != $request->selected_itemtype)
@@ -63,7 +63,7 @@ class SupplierItemsController extends Controller
         if($request->selected_itemtype == 5)
         {
             $data = json_decode($request->data);
-         
+
 
             if(count($data) > 0) {
                 foreach ($data as $row) {
@@ -72,21 +72,21 @@ class SupplierItemsController extends Controller
                         $totalCancelled =  $movement->totalCancelled + (int) $row->cancelledItems;
                         $totalOccuppied = $totalCancelled + $movement->totalReleased;
                         if($movement) {
-                            $movement->type = 5; 
+                            $movement->type = 5;
                             $movement->notification = $totalOccuppied == $movement->qty ? 0 : 1;
                             $movement->totalCancelled = $totalCancelled;
                             $movement->reasonforcancel = strtoupper($row->reasonforcancel);
                             $movement->dateCancelled = Carbon::now();
                             $movement->update();
-        
+
                             $supplier_item = Supplier_Items::find($row->supplieritem_id);
                             $supplier_item->stock = $supplier_item->stock + (int)$row->cancelledItems;
                             $supplier_item->update();
                         }
                     }
                 }
-            }   
-        } 
+            }
+        }
         return response()->json([
             'status'=>true,
             'message'=>'Selected items has been successfully updated.',
@@ -111,7 +111,7 @@ class SupplierItemsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(supplier_items $supplier_items)
+    public function show(Supplier_Items $supplier_items)
     {
         //
     }
@@ -119,7 +119,7 @@ class SupplierItemsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(supplier_items $supplier_items)
+    public function edit(Supplier_Items $supplier_items)
     {
         //
     }
@@ -127,7 +127,7 @@ class SupplierItemsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, supplier_items $supplier_items)
+    public function update(Request $request, Supplier_Items $supplier_items)
     {
         //
     }
@@ -135,7 +135,7 @@ class SupplierItemsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(supplier_items $supplier_items)
+    public function destroy(Supplier_Items $supplier_items)
     {
         //
     }
