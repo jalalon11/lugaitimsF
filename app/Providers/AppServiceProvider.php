@@ -11,7 +11,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // In production, suppress deprecation warnings
+        if (app()->environment('production')) {
+            error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
+        }
     }
 
     /**

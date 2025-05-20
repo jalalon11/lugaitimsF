@@ -1,0 +1,7 @@
+build:
+  - name: Install Composer Dependencies
+    command: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+deploy:
+  - name: Custom Deployment Script
+    command: bash deploy.sh
