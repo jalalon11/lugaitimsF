@@ -24,17 +24,17 @@
         position: relative;
         margin-right: 20px;
     }
-    
+
     .notification-bell-container {
         position: relative;
         cursor: pointer;
     }
-    
+
     .notification-bell {
         font-size: 25px;
         color: white;
     }
-    
+
     .notification-badge {
         position: absolute;
         top: -8px;
@@ -49,7 +49,7 @@
         box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.5);
         animation: pulse 1.5s infinite;
     }
-    
+
     @keyframes pulse {
         0% {
             transform: scale(0.9);
@@ -63,7 +63,7 @@
             box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
         }
     }
-    
+
     .notification-dropdown {
         position: absolute;
         top: 40px;
@@ -78,27 +78,27 @@
         display: flex;
         flex-direction: column;
     }
-    
+
     .notification-header {
         padding: 10px 15px;
         background-color: #f8f9fa;
         border-bottom: 1px solid #dee2e6;
         text-align: center;
     }
-    
+
     .notification-header h5 {
         margin: 0;
         color: #333;
         font-size: 16px;
         font-weight: 600;
     }
-    
+
     .notification-content {
         overflow-y: auto;
         max-height: 300px;
         padding: 0;
     }
-    
+
     .notification-item {
         display: flex;
         align-items: center;
@@ -106,11 +106,11 @@
         border-bottom: 1px solid #eee;
         transition: background-color 0.2s;
     }
-    
+
     .notification-item:hover {
         background-color: #f8f9fa;
     }
-    
+
     .notification-item-image {
         width: 40px;
         height: 40px;
@@ -118,49 +118,49 @@
         margin-right: 10px;
         object-fit: cover;
     }
-    
+
     .notification-item-content {
         flex: 1;
     }
-    
+
     .notification-item-title {
         font-weight: 600;
         margin-bottom: 2px;
         color: #333;
         font-size: 14px;
     }
-    
+
     .notification-item-subtitle {
         color: #666;
         font-size: 12px;
     }
-    
+
     .notification-footer {
         padding: 10px;
         text-align: center;
         border-top: 1px solid #eee;
     }
-    
+
     .notification-empty {
         padding: 20px;
         text-align: center;
         color: #666;
     }
-    
+
     .notification-loading {
         padding: 20px;
         text-align: center;
         color: #666;
     }
-    
+
     .stock-critical {
         background-color: #ffebee;
     }
-    
+
     .stock-warning {
         background-color: #fff8e1;
     }
-    
+
     /* Responsive adjustments */
     @media (max-width: 576px) {
         .notification-dropdown {
@@ -171,111 +171,123 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const bellContainer = document.querySelector('.notification-bell-container');
-    const dropdown = document.getElementById('notification-dropdown');
-    const badge = document.getElementById('notification-badge');
-    const content = document.getElementById('notification-content');
-    
+$(document).ready(function() {
+    const bellContainer = $('.notification-bell-container');
+    const dropdown = $('#notification-dropdown');
+    const badge = $('#notification-badge');
+    const content = $('#notification-content');
+
     // Toggle dropdown when clicking the bell
-    bellContainer.addEventListener('click', function(e) {
+    bellContainer.on('click', function(e) {
         e.stopPropagation();
-        dropdown.style.display = dropdown.style.display === 'none' ? 'flex' : 'none';
-        
-        if (dropdown.style.display === 'flex') {
+        dropdown.toggle();
+
+        if (dropdown.is(':visible')) {
             loadNotifications();
         }
     });
-    
+
     // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!bellContainer.contains(e.target)) {
-            dropdown.style.display = 'none';
+    $(document).on('click', function(e) {
+        if (!bellContainer.is(e.target) && bellContainer.has(e.target).length === 0) {
+            dropdown.hide();
         }
     });
-    
+
     // Function to load notifications
     function loadNotifications() {
-        content.innerHTML = '<div class="notification-loading"><i class="fa fa-spinner fa-spin"></i> Loading...</div>';
-        
-        fetch('{{ route("notifications.get") }}')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
+        content.html('<div class="notification-loading"><i class="fa fa-spinner fa-spin"></i> Loading...</div>');
+
+        // Use a simple timeout to prevent UI from hanging if request fails
+        var notificationTimeout = setTimeout(function() {
+            content.html('<div class="notification-empty">Request timed out</div>');
+        }, 10000); // 10 second timeout
+
+        $.ajax({
+            url: '{{ route("notifications.get") }}',
+            type: 'GET',
+            dataType: 'json',
+            cache: false, // Prevent caching
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(data) {
+                clearTimeout(notificationTimeout);
+
+                try {
+                    if (data && data.success) {
+                        updateNotificationBadge(data.lowStockCount || 0);
+                        updateNotificationContent(data.lowStockItems || []);
+                    } else {
+                        badge.hide();
+                        content.html('<div class="notification-empty">No notifications available</div>');
+                    }
+                } catch (e) {
+                    console.error('Error processing notification data:', e);
+                    badge.hide();
+                    content.html('<div class="notification-empty">Error processing data</div>');
                 }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    updateNotificationBadge(data.lowStockCount);
-                    updateNotificationContent(data.lowStockItems);
-                } else {
-                    content.innerHTML = '<div class="notification-empty">Error loading notifications</div>';
-                }
-            })
-            .catch(error => {
+            },
+            error: function(xhr, status, error) {
+                clearTimeout(notificationTimeout);
                 console.error('Error fetching notifications:', error);
-                content.innerHTML = '<div class="notification-empty">Error loading notifications</div>';
-            });
+                badge.hide();
+                content.html('<div class="notification-empty">Could not load notifications</div>');
+            }
+        });
     }
-    
+
     // Function to update the notification badge
     function updateNotificationBadge(count) {
         if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'block';
+            badge.text(count);
+            badge.show();
         } else {
-            badge.style.display = 'none';
+            badge.hide();
         }
     }
-    
+
     // Function to update notification content
     function updateNotificationContent(items) {
         if (!items || items.length === 0) {
-            content.innerHTML = '<div class="notification-empty">No notifications</div>';
+            content.html('<div class="notification-empty">No notifications</div>');
             return;
         }
-        
+
         let html = '';
-        
-        items.forEach(item => {
-            // Determine item class based on stock level
-            let itemClass = '';
+
+        $.each(items, function(index, item) {
+            // Determine background color based on stock level
+            let bgColor = '';
             if (item.stock === 0) {
-                itemClass = 'stock-critical';
+                bgColor = 'background-color: #ffebee;'; // Red for stock = 0
             } else if (item.stock <= 5) {
-                itemClass = 'stock-warning';
+                bgColor = 'background-color: #fff8e1;'; // Yellow for stock 1-5
             }
-            
+
             // Create placeholder image URL if no image exists
-            let imageUrl = item.image 
-                ? '/storage/upload_images/' + item.image 
-                : 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                    <svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="40" height="40" fill="#eee"/>
-                        <text x="20" y="25" font-size="10" text-anchor="middle" fill="#999">No Image</text>
-                    </svg>
-                `);
-            
-            html += `
-                <div class="notification-item ${itemClass}">
-                    <img src="${imageUrl}" alt="${item.item}" class="notification-item-image">
-                    <div class="notification-item-content">
-                        <div class="notification-item-title">${item.item}</div>
-                        <div class="notification-item-subtitle">
-                            Stock: <strong>${item.stock}</strong>
-                            ${item.supplier_name ? ' | Supplier: ' + item.supplier_name : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
+            let imageUrl = item.image
+                ? '/storage/upload_images/' + item.image
+                : 'data:image/svg+xml;charset=UTF-8,%3Csvg width="40" height="40" xmlns="http://www.w3.org/2000/svg"%3E%3Crect width="40" height="40" fill="%23eee"/%3E%3Ctext x="20" y="25" font-size="10" text-anchor="middle" fill="%23999"%3ENo Image%3C/text%3E%3C/svg%3E';
+
+            html += '<div class="notification-item" style="' + bgColor + '">';
+            html += '<img src="' + imageUrl + '" alt="' + item.item + '" class="notification-item-image">';
+            html += '<div class="notification-item-content">';
+            html += '<div class="notification-item-title">' + item.item + '</div>';
+            html += '<div class="notification-item-subtitle">';
+            html += 'Stock: <strong>' + item.stock + '</strong>';
+            if (item.supplier_name) {
+                html += ' | Supplier: ' + item.supplier_name;
+            }
+            html += '</div></div></div>';
         });
-        
-        content.innerHTML = html;
+
+        content.html(html);
     }
-    
+
     // Initial load and periodic refresh
     loadNotifications();
-    setInterval(loadNotifications, 30000); // Refresh every 30 seconds
+    setInterval(loadNotifications, 60000); // Refresh every 60 seconds
 });
 </script>

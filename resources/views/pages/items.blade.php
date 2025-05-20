@@ -19,7 +19,7 @@
             </div>
 
 
-            
+
             <div id="layoutSidenav_content">
                 <main>
                     <div class="container-fluid px-6">
@@ -54,7 +54,7 @@
                                         word-break: break-word; word-break: break-all; white-space: normal;
                                     }
                                 </style>
-                               
+
                                <div class="row" id = "categorylist">
 
                                 </div>
@@ -64,7 +64,7 @@
                                         <thead >
                                             <tr style = "background-color: #446c7c;">
                                                 <th style = "text-align:center;">
-                                                    <input style = "width: 20px; height: 20px;" type="checkbox" id = "itemAll"/> 
+                                                    <input style = "width: 20px; height: 20px;" type="checkbox" id = "itemAll"/>
                                                 </th>
                                                 <th colspan = "2" style = "text-align: center">
                                                     <button type = "button" class = "btn btn-flat btn-danger btn-sm" id = "btn_reStock"><i class = "fas  fa-redo fa-xs"></i>&nbsp;Reset Stock </button>
@@ -118,7 +118,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <ul id = "error-messages" style = "color: red"> 
+                <ul id = "error-messages" style = "color: red">
 
                 </ul>
                 <style>
@@ -219,8 +219,8 @@
                                     <input autocomplete="off"   step=".01" onkeyup="$(this).removeClass('is-invalid'); $('#totalCost-msg').html('');" type="number"  value = "0.00" class="form-control currency"  name = "totalCost" id="totalCost" placeholder="Enter your unit cost" style = "background-color: whitesmoke" readonly>
                                      <span class = "v-error" style = "color:red;" id = "totalCost-msg"></span>
                                 </div>
-                            </div> 
-                        </div> 
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-4">
                                 <label for="">Image<span style="color:red"></span></label>
@@ -347,7 +347,7 @@
                                         <label for="contact_number">Contact Number (+63)</label>
                                         <input autocomplete="off" onkeyup="$(this).removeClass('is-invalid'); $('#contact_number-msg').html('');" type="tel" maxlength = "10" pattern = "^(9|\+639)\d{9}$" name = "contact_number" id="contact_number" placeholder="Contact Number" class="form-control">
                                         <span class = "v-error" style = "color:red;" id = "contact_number-msg"></span>
-                                    </div> 
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
@@ -363,7 +363,7 @@
                                         <label for="tin">T.I.N</label>
                                         <input autocomplete="off" onkeyup="$(this).removeClass('is-invalid'); $('#tin-msg').html('');" type="tel"   name = "tin" id="tin" placeholder="BIR T.I.N" class="form-control">
                                         <span class = "v-error" style = "color:red;" id = "tin-msg"></span>
-                                    </div> 
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
@@ -425,23 +425,23 @@
                                         <option value="2">Released</option>
                                     </select>
                                     <span class = "v-error" style = "color:red;" id = "itemtype-msg"></span>
-                                </div> 
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label for="datefrom">Supplier</label>
                                     <select name="_supplier" id="_supplier" class = "form-control" onchange="$(this).removeClass('is-invalid'); $('#_supplier-msg').html('');">
-                                       
+
                                     </select>
                                     <span class = "v-error" style = "color:red;" id = "_supplier-msg"></span>
-                                </div> 
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label for="datefrom">Date</label>
                                     <input autocomplete="off" oninput="$(this).removeClass('is-invalid'); $('#datefrom-msg').html('');" type="date" maxlength = "10"  name = "datefrom" id="datefrom"  class="form-control">
                                     <span class = "v-error" style = "color:red;" id = "datefrom-msg"></span>
-                                </div> 
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <button class = "btn btn-secondary btn-block btn-sm" type = "submit"><i class = "fas fa-print"></i>&nbsp;Print Report</button>
@@ -452,7 +452,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Item Details and Transaction Modal -->
      <div class="modal fade" id="itemdetails-modal"   tabindex="-1" role="dialog" aria-labelledby="itemdetails-modalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document" >
@@ -469,7 +469,7 @@
                         <input type="hidden" id = "__supplieritem_id">
                         <div class="col-md-8">
                             <table id="tbl_itemdetails" class = "table table-bordered table-stripped " style = "width: 100%">
-                               
+
                                 <tbody   >
 
                                 </tbody>
@@ -541,7 +541,7 @@
                 if(day < 10)
                     day = '0' + day.toString();
 
-                var maxDate = year + '-' + month + '-' + day;    
+                var maxDate = year + '-' + month + '-' + day;
                 $('#date').attr('max', maxDate);
             });
             $.ajaxSetup({
@@ -620,7 +620,7 @@
             $("#btn_reload").click(function(){
                 AutoReload();
             })
-            function AutoReload() 
+            function AutoReload()
             {
                 RefreshTable('#table', '{!! route("datatables.items") !!}');
             }
@@ -652,8 +652,8 @@
                             row += '<div class="small text-white"><h5>'+data[i].totalItems+'</h5></div>';
                             row += '</div>';
                             row += '</div>';
-                            row += '</div>';      
-                        }    
+                            row += '</div>';
+                        }
                         $("#categorylist").html(row);
                     }
                 })
@@ -668,12 +668,12 @@
                     ajax: '{!! route("datatables.items") !!}',
                     columnDefs: [
                         {
-                            className: "text-center", 
-                            targets: [0, 1, 3, 5, 8, 11, 12] 
+                            className: "text-center",
+                            targets: [0, 1, 3, 5, 8, 11, 12]
                         },
                         {
-                            className: "text-right", 
-                            targets: [6, 7] 
+                            className: "text-right",
+                            targets: [6, 7]
                         },
                     ],
                     order: [[1, 'desc']],
@@ -683,14 +683,14 @@
                         {
                             extend: 'copy',
                             exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] 
+                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                             },
                             className: 'btn btn-secondary btn-sm',
-                        }, 
+                        },
                         {
                             extend: 'print',
                             exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] 
+                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                             },
                             className: 'btn btn-secondary btn-sm',
                             orientation: 'portrait',
@@ -700,19 +700,19 @@
                             customize: function (win) {
                                 $(win.document.body)
                                     .css('font-size', '8pt');
-                        
+
                                 $(win.document.body).find('table')
                                     .addClass('compact')
                                     .css('font-size', 'inherit');
                             }
-                        }, 
+                        },
                         {
                             extend: 'excel',
                             exportOptions: {
-                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] 
+                                columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                     ],
                     initComplete: function () {
                         this.api().buttons().container().appendTo('#export_buttons');
@@ -790,9 +790,9 @@
             });
             $("#btn_reStock").click(function(e){
                 var array = [];
-                $("input:checkbox[name=itemCheck]:checked").each(function() { 
-                    array.push($(this).val()); 
-                });     
+                $("input:checkbox[name=itemCheck]:checked").each(function() {
+                    array.push($(this).val());
+                });
                 if(array.length > 0)
                 {
                     if(confirm("Do you wish to re-stock the selected items?"))
@@ -807,7 +807,7 @@
                                 if(response.status) {
                                     AutoReload();
                                     $("#itemAll").prop('checked', false);
-                                    responseMessage("success", response.message) 
+                                    responseMessage("success", response.message)
                                 }
                             },
                             error: function(res)
@@ -830,10 +830,10 @@
             $("#selected_itemtype").on('change', function(e){
                 var array = [];
                 var supplieritem_ids = [];
-                $("input:checkbox[name=itemCheck]:checked").each(function() { 
+                $("input:checkbox[name=itemCheck]:checked").each(function() {
                     supplieritem_ids.push($(this).data('supplieritem_id'));
-                    array.push($(this).val()); 
-                }); 
+                    array.push($(this).val());
+                });
                 if(array.length > 0)
                 {
                     if($(this).val() !== "")
@@ -851,7 +851,7 @@
                                         AutoReload();
                                         $("#selected_itemtype").val("");
                                         $("#itemAll").prop('checked', false);
-                                        responseMessage("success", response.message) 
+                                        responseMessage("success", response.message)
                                     }
                                 },
                                 error: function(res)
@@ -869,7 +869,7 @@
                     alert("No item selected.");
                 }
             })
-            
+
             $("#itemAll").click(function(e){
                 var table = $(e.target).closest("table");
                 $("td input:checkbox", table).prop('checked', this.checked)
@@ -902,12 +902,12 @@
                 $("select").val("");
                 $("select").removeClass('is-invalid');
                 $("#stock").val("0");
-            
-            }           
+
+            }
             $("#item-form").on('submit', function(e){
                 e.preventDefault();
                     var formData = new FormData(this);
-                    console.log(serializeForm(formData));  
+                    console.log(serializeForm(formData));
 
                     $.ajax({
                         url: '{{ route("items.store") }}',
@@ -916,33 +916,52 @@
                         dataType: 'json',
                         contentType: false,
                         processData: false,
-                        cache:false,
-                        success: function(resp)
-                        {
-                            if(resp.status)
-                            {
+                        cache: false,
+                        timeout: 30000, // 30 second timeout
+                        beforeSend: function() {
+                            // Disable submit button to prevent double submission
+                            $("#btn_saveItem").prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+                        },
+                        success: function(resp) {
+                            if(resp.status) {
                                 AutoReload();
                                 resetInputFields();
                                 $("#item-modal").modal('hide');
-                                responseMessage("success", resp.messages) 
-                            }
-                            else
-                            {
-                                $.each(resp.messages, function(key,value) {
+                                responseMessage("success", resp.messages);
+                            } else {
+                                $.each(resp.messages, function(key, value) {
                                     $("#"+key).addClass('is-invalid');
                                     $("#"+key+"-msg").html(value);
                                 });
                             }
                         },
+                        error: function(xhr, status, error) {
+                            console.error("Error submitting form:", error);
 
+                            // Show a more user-friendly error message
+                            Swal.fire({
+                                title: "Error",
+                                text: "There was a problem saving the item. Please try again later.",
+                                icon: "error"
+                            });
 
-                        error: function(message)
-                        {
-                            alert("Server Error");
+                            // Log the error details to console for debugging
+                            if (xhr.responseText) {
+                                try {
+                                    var response = JSON.parse(xhr.responseText);
+                                    console.error("Server response:", response);
+                                } catch (e) {
+                                    console.error("Raw server response:", xhr.responseText);
+                                }
+                            }
+                        },
+                        complete: function() {
+                            // Re-enable the submit button
+                            $("#btn_saveItem").prop('disabled', false).html('<i class="fas fa-check"></i> Submit');
                         }
                     })
             })
-           
+
             function showModal()
             {
                 $("#stock").val(0);
@@ -952,7 +971,7 @@
                     keyboard: false,
                 })
             }
-            function selectElement(id, valueToSelect) {    
+            function selectElement(id, valueToSelect) {
                 let element = document.getElementById(id);
                 element.value = valueToSelect;
             }
@@ -962,7 +981,7 @@
                 selectElement("supplier", data[0].supplier_id);
 
                 $("#supplieritem_id").val(data[0].supplieritem_id);
-                $("#item_id").val(data[0].item_id); 
+                $("#item_id").val(data[0].item_id);
 
                 if (data[0].image != null)
                 $("#preview_image").attr('src', '{{ asset('storage/upload_images/') }}/' + data[0].image);
@@ -993,9 +1012,9 @@
                     url: "/items/" + item_id + "/edit",
                     dataType: 'json',
                     success: function(data)
-                    {        
-                        $("#item-modalLabel").text('Edit Item');  
-                        showModal();  
+                    {
+                        $("#item-modalLabel").text('Edit Item');
+                        showModal();
                         show_allValue(data);
                     },
                     error: function(data)
@@ -1013,7 +1032,7 @@
                     dataType: 'json',
                     success: function(data)
                     {
-                        $("#itemdetails-modalLabel").text('Item Details');  
+                        $("#itemdetails-modalLabel").text('Item Details');
                         var content = "";
                         content += "<tr style = 'background-color: #2c4b5f; color: white'>";
                         content += "<td colspan = '2'>Item Details</td>";
@@ -1080,7 +1099,7 @@
                             content2 += "<td colspan = '2'><img src='" + baseUrl + "/" + data[0].image + "' style = 'height: 180px; width: 180px;'></img></td>";
                             content2 += "</tr>";
                         }
-                        else 
+                        else
                         {
                             content2 += "<tr align='center'>";
                             content2 += "<td colspan = '2'><img src = '/upload_images/item.png' style = 'height: 180px; width: 180px;'></img></td>";
@@ -1124,7 +1143,7 @@
                     }
                 })
             })
-            
+
 
             let block_image = null;
             function readURL(input) {
@@ -1225,7 +1244,7 @@
                         option += "</optgroup>";
                         $("#supplier").html(option);
                         $("#_supplier").html(option);
-                        
+
                     },
                     error: function(data)
                     {
@@ -1233,7 +1252,7 @@
                     }
                 })
             }
-            
+
             function show_allDesignatedOffices()
             {
                 $.ajax({
@@ -1293,7 +1312,7 @@
                         dataType: 'json',
                         success: function(data)
                         {
-                            responseMessage("success", data.message) 
+                            responseMessage("success", data.message)
                             AutoReload();
                         },
                         error: function(data)
@@ -1306,7 +1325,7 @@
 
             //Manage Category
             show_datatableCategory();
-            function AutoReloadCategory() 
+            function AutoReloadCategory()
             {
                 RefreshTable('#tbl_categories', '{!! route("itemcategories.index") !!}');
             }
@@ -1328,29 +1347,29 @@
                         {
                             extend: 'copy',
                             exportOptions: {
-                                columns: [0] 
-                            }, 
+                                columns: [0]
+                            },
                             title: 'LSHS ITEM CATEGORIES',
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                         {
                             extend: 'print',
                             exportOptions: {
-                                columns: [0] 
+                                columns: [0]
                             },
                             title: 'LSHS ITEM CATEGORIES',
                             className: 'btn btn-secondary btn-sm',
                             orientation: 'portrait',
                             pageSize: 'LEGAL',
-                        },  
+                        },
                         {
                             extend: 'excel',
                             title: 'LSHS ITEM CATEGORIES',
                             exportOptions: {
-                                columns: [0] 
+                                columns: [0]
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                     ],
                     columns: [
                         { data: 'category', name: 'category' },
@@ -1363,7 +1382,7 @@
                 if(confirm("Are you sure you want to save this item category?"))
                 {
                     var formData = serializeForm($(this).serializeArray());
-                    
+
                     $.ajax({
                         url: '{{ route("itemcategories.store") }}',
                         type: 'post',
@@ -1376,7 +1395,7 @@
                                 AutoReloadCategory();
                                 reset_categoryForm();
                                 show_allCategoryList();
-                                responseMessage("success", resp.messages) 
+                                responseMessage("success", resp.messages)
                             }
                             else
                             {
@@ -1472,11 +1491,11 @@
                     keyboard: false,
                 });
             }
-           
+
 
             //Manage Supplier
             show_datatableSupplier();
-            function AutoReloadSupplier() 
+            function AutoReloadSupplier()
             {
                 RefreshTable('#tbl_suppliers', '{!! route("suppliers.index") !!}');
             }
@@ -1498,29 +1517,29 @@
                         {
                             extend: 'copy',
                             exportOptions: {
-                                columns: [0, 1, 2] 
-                            }, 
+                                columns: [0, 1, 2]
+                            },
                             title: 'LSHS SUPPLIERS',
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                         {
                             extend: 'print',
                             exportOptions: {
-                                columns: [0, 1, 2] 
+                                columns: [0, 1, 2]
                             },
                             title: 'LSHS SUPPLIERS',
                             className: 'btn btn-secondary btn-sm',
                             orientation: 'portrait',
                             pageSize: 'LEGAL',
-                        },  
+                        },
                         {
                             extend: 'excel',
                             title: 'LSHS SUPPLIERS',
                             exportOptions: {
-                                columns: [0, 1, 2] 
+                                columns: [0, 1, 2]
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                     ],
                     columns: [
                         { data: 'name', name: 'name' },
@@ -1546,7 +1565,7 @@
                             {
                                 AutoReloadSupplier();
                                 reset_supplierForm();
-                                responseMessage("success", resp.messages) 
+                                responseMessage("success", resp.messages)
                             }
                             else
                             {
@@ -1657,7 +1676,7 @@
 
             $("#filter-form").submit(function(e){
                 e.preventDefault();
-                
+
                 var data = $(this).serializeArray();
                 $.ajax({
                     type: 'get',
@@ -1670,7 +1689,7 @@
                         {
                             window.open(response.url, "_blank");
                         }
-                        else if(response.status == 2) responseMessage("success", response.messages) 
+                        else if(response.status == 2) responseMessage("success", response.messages)
                         else
                         {
                             $.each(response.messages, function(key, value){
