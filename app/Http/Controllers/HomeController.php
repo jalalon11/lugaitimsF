@@ -47,7 +47,8 @@ class HomeController extends Controller
 
         foreach($years_r as $year)
         {
-            $amount_total = DB::select('select SUM(supplier_items.cost*movements.totalReleased) as accumulated from supplier_items, movements where supplier_items.id = movements.supplieritem_id and QUARTER(movements.created_at) = "'.$year->quarters.'" and YEAR(movements.created_at) = "'.$year->years.'"');
+            // Only include released items (type 3 = fully released, type 7 = partially released)
+            $amount_total = DB::select('select SUM(supplier_items.cost*movements.totalReleased) as accumulated from supplier_items, movements where supplier_items.id = movements.supplieritem_id and (movements.type = 3 OR movements.type = 7) and QUARTER(movements.created_at) = "'.$year->quarters.'" and YEAR(movements.created_at) = "'.$year->years.'"');
             $acc = $amount_total[0]->accumulated;
             if($acc === null)
             {
@@ -55,10 +56,15 @@ class HomeController extends Controller
             }
             $total = " P ".number_format((float)$acc, 2, '.', ',');
             $years_ofReleasedLabel[] = $year->years." - Q".$year->quarters." : ".$total;
+
+            // Only include released items (type 3 = fully released, type 7 = partially released)
             $values = DB::select('SELECT count(supplier_items.id) as total
             FROM items
             INNER JOIN supplier_items on supplier_items.item_id = items.id
-            INNER JOIN movements on movements.supplieritem_id = supplier_items.id WHERE QUARTER(movements.created_at) = "'.$year->quarters.'" and YEAR(movements.created_at) = "'.$year->years.'" ');
+            INNER JOIN movements on movements.supplieritem_id = supplier_items.id
+            WHERE (movements.type = 3 OR movements.type = 7)
+            AND QUARTER(movements.created_at) = "'.$year->quarters.'"
+            AND YEAR(movements.created_at) = "'.$year->years.'" ');
 
             $values_ofReleased[] = $values[0]->total;
         }

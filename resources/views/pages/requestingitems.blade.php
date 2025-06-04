@@ -14,7 +14,7 @@
                                 <div class="row">
                                     <div class="col-sm-4">
                                         <i class="fas fa-table me-1"></i>
-                                        Daily Listing of Requested Items 
+                                        Daily Listing of Requested Items
                                     </div>
                                     <div class="col-sm-4">
                                         <button id = "open_departmentModal" type = "button" class = "btn btn-primary btn-sm">
@@ -70,10 +70,10 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <ul id = "error-messages" style = "color: red"> 
+                <ul id = "error-messages" style = "color: red">
 
                 </ul>
-                
+
                 <!-- Modal Body - Your Form Goes Here -->
                 <form id = "form" method = "post" action="">
                     <input type="hidden" id="_userid" value = "">
@@ -86,7 +86,7 @@
                                 <thead>
                                     <tr>
                                         <th style = "text-align:center;">
-                                            <input style = "width: 20px; height: 20px;" type="checkbox" id = "itemAll"/> 
+                                            <input style = "width: 20px; height: 20px;" type="checkbox" id = "itemAll"/>
                                         </th>
                                         <th>
                                             <select name="selected_itemtype" id="selected_itemtype" class = "form-control" style = "height: 40px; ">
@@ -107,7 +107,7 @@
                                         <th>QUANTITY</th>
                                         <th>BRAND</th>
                                         <th>NO. ITEMS RELEASED</th>
-                                        <th>STATUS</th>     
+                                        <th>STATUS</th>
                                         <th class = "t-citems">NO. CANCELLED ITEMS</th>
                                         <th>REASON OF CANCEL</th>
                                     </tr>
@@ -118,7 +118,7 @@
                     </div>
                     <!-- Modal Footer with Close Button -->
                     <div class="modal-footer modal-buttons">
-                       
+
                     </div>
                 </form>
             </div>
@@ -136,10 +136,10 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <ul id = "error-messages" style = "color: red"> 
+                <ul id = "error-messages" style = "color: red">
 
                 </ul>
-                
+
                 <!-- Modal Body - Your Form Goes Here -->
                 <form id = "request-form" method = "post" action="">
                     <input autocomplete="off" type="hidden" name = "_token" value = "{{ csrf_token() }}">
@@ -148,7 +148,7 @@
                         <div class="form-group">
                             <label for="department">Supplier Item</label>
                             <select class = "form-control" name="supplieritem" id="supplieritem">
-                                
+
                             </select>
                             <span class = "v-error" style = "color:red;" id = "department-msg"></span>
                         </div>
@@ -164,7 +164,7 @@
                                 <div class="form-group">
                                     <label for="requestor">Requestor</label>
                                     <select class = "form-control" name="requestor" id="requestor">
-                                
+
                                 </select>
                                     <span class = "v-error" style = "color:red;" id = "requestor-msg"></span>
                                 </div>
@@ -181,7 +181,7 @@
         </div>
     </div>
 
-    
+
     <!-- Filter Modal -->
     <div class="modal fade" id="filter-modal"   tabindex="-1" role="dialog" aria-labelledby="filter-modalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg " role="document" >
@@ -206,23 +206,23 @@
                                         <option value="5">Cancelled</option>
                                     </select>
                                     <span class = "v-error" style = "color:red;" id = "itemtype-msg"></span>
-                                </div> 
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label for="datefrom">Requestor</label>
                                     <select name="_supplier" id="_supplier" class = "form-control" onchange="$(this).removeClass('is-invalid'); $('#_supplier-msg').html('');">
-                                       
+
                                     </select>
                                     <span class = "v-error" style = "color:red;" id = "_supplier-msg"></span>
-                                </div> 
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label for="datefrom">Date</label>
                                     <input autocomplete="off" oninput="$(this).removeClass('is-invalid'); $('#datefrom-msg').html('');" type="date" maxlength = "10"  name = "datefrom" id="datefrom"  class="form-control">
                                     <span class = "v-error" style = "color:red;" id = "datefrom-msg"></span>
-                                </div> 
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <button class = "btn btn-secondary btn-block btn-sm" type = "submit"><i class = "fas fa-print"></i>&nbsp;Print Report</button>
@@ -238,6 +238,43 @@
             pointer-events: none;
             background-color: lightgray;
             color: black;
+        }
+
+        /* Highlighting styles for transaction types */
+        .highlight-released {
+            background-color: #d4edda !important;
+            border: 2px solid #28a745 !important;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.3) !important;
+        }
+
+        .highlight-cancelled {
+            background-color: #f8d7da !important;
+            border: 2px solid #dc3545 !important;
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.3) !important;
+        }
+
+        .disabled-field {
+            background-color: #e9ecef !important;
+            opacity: 0.6 !important;
+            pointer-events: none !important;
+        }
+
+        .highlight-header {
+            font-weight: bold !important;
+            color: white !important;
+        }
+
+        .highlight-released-header {
+            background-color: #28a745 !important;
+        }
+
+        .highlight-cancelled-header {
+            background-color: #dc3545 !important;
+        }
+
+        /* Animation for smooth transitions */
+        th, td {
+            transition: all 0.3s ease;
         }
     </style>
     @include('navigation/footer')
@@ -256,8 +293,15 @@
                 {
                     if(data.status)
                     {
-                        $("#notif").hide();
-                        $("#notif").html("");
+                        // Only hide the sidebar notification if there are no more pending items
+                        if(!data.hasPendingItems) {
+                            $("#notif").hide();
+                            $("#notif").html("");
+                        }
+                        // Refresh the sidebar notification count
+                        if(typeof loadRequisitionNotifications === 'function') {
+                            loadRequisitionNotifications();
+                        }
                     }
                 },
                 error: function()
@@ -298,10 +342,24 @@
                 }
             })
         }
-       
+
     </script>
-    <script  type="text/javascript">    
+    <script  type="text/javascript">
         let mbuttons = $(".modal-buttons");
+
+        // Function to reset all transaction highlighting
+        function resetTransactionHighlighting() {
+            // Remove all highlighting classes from headers
+            $('th').removeClass('highlight-header highlight-released-header highlight-cancelled-header disabled-field');
+
+            // Remove all highlighting and disabled classes from input fields and cells
+            $('input[name="totalReleased"], input[name="cancelledItems"]').removeClass('highlight-released highlight-cancelled disabled-field');
+            $('.reasonforcancel').removeClass('highlight-released highlight-cancelled disabled-field');
+
+            // Reset contenteditable attribute for reason fields
+            $('.reasonforcancel').attr('contenteditable', true);
+        }
+
         $(document).ready(function(){
             $.ajaxSetup({
                 headers: {
@@ -312,7 +370,7 @@
             show_allUsers();
             $("#filter-form").submit(function(e){
                 e.preventDefault();
-                
+
                 var data = $(this).serializeArray();
                 $.ajax({
                     type: 'get',
@@ -375,7 +433,7 @@
                     }
                 })
             }
-            
+
             $("#open_departmentModal").on('click', function(e){
                 e.preventDefault();
                 $("#req-modalLabel").text('Create New Request')
@@ -395,7 +453,7 @@
                 $(".v-error").html("");
                 $("input").removeClass('is-invalid');
                 $("select").removeClass('is-invalid');
-            }           
+            }
             $("#request-form").on('submit', function(e){
                 e.preventDefault();
                 if(confirm("Are you sure you want to request this item?"))
@@ -474,23 +532,23 @@
                 });
             }
             var releasedItems = [];
-          
 
-          
+
+
             $("#selected_itemtype").on('change', function(e){
-                
+
                 var array = [];
                 var supplieritem_ids = [];
                 var qty = [];
                 var types = [];
                 var req_id = [];
-                $("input:checkbox[name=itemCheck]:checked").each(function() { 
+                $("input:checkbox[name=itemCheck]:checked").each(function() {
                     supplieritem_ids.push($(this).data('supplieritem_id'));
                     types.push($(this).data('type'));
                     qty.push($(this).data('qty'));
-                    array.push($(this).val()); 
+                    array.push($(this).val());
                     req_id.push($(this).data('req_id'));
-                }); 
+                });
                 if(array.length > 0)
                 {
                     if($(this).val() !== "")
@@ -498,24 +556,43 @@
                         let cancelled_cell = $("#tbl_request_items");
                         if($(this).val() === "7")
                         {
-                            // cancelled_cell.find(".t-citems").addClass('d-none');
-                            // cancelled_cell.find(".t-search").attr("colspan", "6");
+                            // RELEASED transaction selected
+                            // Reset all highlighting first
+                            resetTransactionHighlighting();
 
-                            $("input:checkbox[name=itemCheck]:checked").each(function() { 
-                                $(this).closest('tr').find('input[name="totalReleased"]').attr('disabled', false);
-                                mbuttons.html(` <button type="button" class="btn btn-success btn-sm btn-block btn-submitPartial"><i class = "fas fa-save"></i>&nbsp; Submit</button> 
+                            // Highlight NO. ITEMS RELEASED column
+                            $('th:contains("NO. ITEMS RELEASED")').addClass('highlight-header highlight-released-header');
+
+                            // Disable and dim NO. CANCELLED ITEMS and REASON OF CANCEL columns
+                            $('th:contains("NO. CANCELLED ITEMS")').addClass('disabled-field');
+                            $('th:contains("REASON OF CANCEL")').addClass('disabled-field');
+
+                            $("input:checkbox[name=itemCheck]:checked").each(function() {
+                                var $row = $(this).closest('tr');
+
+                                // Highlight and enable NO. ITEMS RELEASED field
+                                var $releasedInput = $row.find('input[name="totalReleased"]');
+                                $releasedInput.attr('disabled', false)
+                                           .removeClass('disabled-field')
+                                           .addClass('highlight-released');
+
+                                // Disable and dim NO. CANCELLED ITEMS and REASON OF CANCEL fields
+                                $row.find('input[name="cancelledItems"]').addClass('disabled-field').attr('disabled', true);
+                                $row.find('.reasonforcancel').addClass('disabled-field').attr('contenteditable', false);
+
+                                mbuttons.html(` <button type="button" class="btn btn-success btn-sm btn-block btn-submitPartial"><i class = "fas fa-save"></i>&nbsp; Submit</button>
                                             <a class = "btn btn-primary btn-block btn-sm" id = "btn_releaseReport" ><i class = "fas fa-print"></i>&nbsp; Release Ticket</a>
                                             <!-- <button type="button" class="btn btn-success btn-sm btn-block btn-approved" data-dismiss="modal"><i class = "fas fa-cart"></i>&nbsp; Delivered</button>
                                             <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Cancel</button> -->
                                             <button type="button" class="btn btn-danger  btn-block btn-sm" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Close</button>`);
-                            }); 
+                            });
                             $("input:checkbox[name=itemCheck]:not(:checked)").each(function(){
                                 $(this).closest('tr').find('input[name="totalReleased"]').attr('disabled', true);
                                 $(this).attr('disabled', true);
                             })
 
                             $("#btn_releaseReport").click(function(e){
-                            
+
                                 var dateRequest = $("#_date").val();
                                 var user_id = $("#_userid").val();
                                 window.open("/admin/requesting/report/"+dateRequest+"/"+user_id, "_blank");
@@ -525,7 +602,7 @@
                                 $("input:checkbox[name=itemCheck]:checked").each(function() {
                                     var data = {};
                                     var totalReleased = $(this).closest('tr').find('input[name="totalReleased"]').val();
-                                    
+
                                     if(totalReleased !== "")
                                     {
                                         data.totalReleased = totalReleased;
@@ -561,7 +638,7 @@
                                                             <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Cancel</button> -->
                                                             <button type="button" class="btn btn-danger  btn-block btn-sm" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Close</button>`);
                                                             $("#btn_releaseReport").click(function(e){
-                                                                
+
                                                                 var dateRequest = $("#_date").val();
                                                                 var user_id = $("#_userid").val();
                                                                 window.open("/admin/requesting/report/"+dateRequest+"/"+user_id, "_blank");
@@ -577,20 +654,38 @@
                             })
                         }
                         else
-                        {   
-                        
-                            // cancelled_cell.find(".t-citems").removeClass('d-none');
-                            // cancelled_cell.find(".t-search").attr("colspan", "7");
-                            // cancelled_cell.find(".t-citems").removeClass('d-none');
+                        {
+                            // CANCEL transaction selected
+                            // Reset all highlighting first
+                            resetTransactionHighlighting();
 
-                            $("input:checkbox[name=itemCheck]:checked").each(function() { 
-                                $(this).closest('tr').find('input[name="totalReleased"]').val();
-                                mbuttons.html(`  <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Cancel</button> 
+                            // Highlight NO. CANCELLED ITEMS and REASON OF CANCEL columns
+                            $('th:contains("NO. CANCELLED ITEMS")').addClass('highlight-header highlight-cancelled-header');
+                            $('th:contains("REASON OF CANCEL")').addClass('highlight-header highlight-cancelled-header');
+
+                            // Disable and dim NO. ITEMS RELEASED column
+                            $('th:contains("NO. ITEMS RELEASED")').addClass('disabled-field');
+
+                            $("input:checkbox[name=itemCheck]:checked").each(function() {
+                                var $row = $(this).closest('tr');
+
+                                // Disable and dim NO. ITEMS RELEASED field
+                                $row.find('input[name="totalReleased"]').addClass('disabled-field').attr('disabled', true);
+
+                                // Highlight and enable NO. CANCELLED ITEMS and REASON OF CANCEL fields
+                                $row.find('input[name="cancelledItems"]').removeClass('disabled-field')
+                                                                        .addClass('highlight-cancelled')
+                                                                        .attr('disabled', false);
+                                $row.find('.reasonforcancel').removeClass('disabled-field')
+                                                             .addClass('highlight-cancelled')
+                                                             .attr('contenteditable', true);
+
+                                mbuttons.html(`  <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Cancel</button>
                                             <a class = "btn btn-primary btn-block btn-sm" id = "btn_releaseReport" ><i class = "fas fa-print"></i>&nbsp; Release Ticket</a>
                                             <!-- <button type="button" class="btn btn-success btn-sm btn-block btn-approved" data-dismiss="modal"><i class = "fas fa-cart"></i>&nbsp; Delivered</button>
                                             <button type="button" class="btn btn-danger btn-sm btn-block btn-cancel" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Cancel</button> -->
                                             <button type="button" class="btn btn-danger  btn-block btn-sm" data-dismiss="modal"><i class = "fas fa-times"></i>&nbsp; Close</button>`);
-                            }); 
+                            });
 
                             $("#btn_releaseReport").click(function(e){
                                 var dateRequest = $("#_date").val();
@@ -603,7 +698,7 @@
                                 let items = [];
                                 $("#tbl_request_items tbody tr").each(function() {
                                     let tr = $(this);
-                                    if(tr.find("input:checkbox[name=itemCheck]:checked")) { 
+                                    if(tr.find("input:checkbox[name=itemCheck]:checked")) {
                                         items.push({
                                             supplieritem_id: tr.data('id'),
                                             movement_id: tr.data('movement_id'),
@@ -614,7 +709,7 @@
                                             type: 5
                                         });
                                     }
-                                  
+
                                 })
 
                                 $.get(`{{ route("supplieritems.reTypeItem") }}`, {data: JSON.stringify(items), selected_itemtype: 5}, function(response) {
@@ -631,7 +726,7 @@
 
                             })
 
-                        
+
                             // if(confirm("Do you wish to retype the selected items?"))
                             // {
                             //     var reasonforcancel = "";
@@ -642,15 +737,15 @@
                             //             reasonforcancel = prompt("Enter a reason:");
                             //         }
                             //         while(reasonforcancel == null || reasonforcancel == "" );
-                            //     } 
+                            //     }
                             //     $.ajax({
                             //         type: 'get',
                             //         url: '{{ route("supplieritems.reTypeItem") }}',
                             //         data: {
-                            //             items: array, 
-                            //             selected_itemtype: $(this).val(), 
-                            //             supplieritem_ids: supplieritem_ids, 
-                            //             qty: qty, 
+                            //             items: array,
+                            //             selected_itemtype: $(this).val(),
+                            //             supplieritem_ids: supplieritem_ids,
+                            //             qty: qty,
                             //             totalCancelled: totalCancelled,
                             //             types: types,
                             //             req_id: req_id,
@@ -677,27 +772,31 @@
                             // }
                         }
                     }
-                    else 
+                    else
                     {
                         alert("Please select a type!");
+                        // Reset all highlighting when no transaction type is selected
+                        resetTransactionHighlighting();
+
                         $('input[name="totalReleased"]').attr('disabled', true);
                         $("input:checkbox[name=itemCheck]:not(:checked)").each(function(){
                             $(this).attr('disabled', false);
                         })
-                        $("input:checkbox[name=itemCheck]:checked").each(function() { 
+                        $("input:checkbox[name=itemCheck]:checked").each(function() {
                             $(this).closest('tr').find('input[name="totalReleased"]').val();
                             $(".btn-submitPartial").hide();
                             $(this).prop('checked', false);
-                        }); 
+                        });
                     }
                 }
                 else
                 {
                     $("#selected_itemtype").val("");
+                    resetTransactionHighlighting();
                     alert("No item selected.");
                 }
             })
-            function AutoReload() 
+            function AutoReload()
             {
                 RefreshTable('#table', '{!! route("datatables.requestingitems") !!}');
             }
@@ -710,8 +809,8 @@
                     responsive: true,
                     ajax: '{!! route("datatables.requestingitems") !!}',
                     columnDefs: [{
-                        className: "text-center", 
-                        targets: [0, 3] 
+                        className: "text-center",
+                        targets: [0, 3]
                     }],
                     order: [[0, 'asc']],
                     dom: 'lBfrtip',
@@ -720,7 +819,7 @@
                         {
                             extend: 'copy',
                             exportOptions: {
-                                columns: [0, 1, 2] 
+                                columns: [0, 1, 2]
                             },
                             className: 'btn btn-secondary btn-sm',
                         },
@@ -737,10 +836,10 @@
                         {
                             extend: 'excel',
                             exportOptions: {
-                                columns: [0, 1, 2] 
+                                columns: [0, 1, 2]
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },      
+                        },
                     ],
                     initComplete: function () {
                         this.api().buttons().container().appendTo('#export_buttons');
@@ -759,18 +858,22 @@
                 $("#_userid").val(user_id);
                 $("#_date").val(dateRequest);
                 reset_notif(dateRequest, user_id);
-                AutoReload();
                 show_allRequestss(dateRequest, user_id);
                 showModal();
+
+                // Refresh the table after a short delay to allow the modal to open
+                setTimeout(function() {
+                    AutoReload();
+                }, 500);
             })
             $("#tblrequest_items_tbody").on('keyup', '#totalReleased, #cancelledItems', function(e){
-        
+
                var qty = parseFloat($(this).val());
                var stock = parseFloat($(this).data('qty'))
                var occupied = parseFloat($(this).closest('tr').data('occupied')) || 0;
-                
+
                var remainingStock = stock - occupied;
- 
+
                if(qty > remainingStock)
                {
                  alert("Must not be greater than requested quantity");
@@ -784,14 +887,14 @@
             })
             // $("#tblrequest_items_tbody").on('keyup', '#totalReleased, #cancelledItems', function (e) {
             //     var $input = $(this);
-            //     var qty = parseFloat($input.val()) || 0; 
+            //     var qty = parseFloat($input.val()) || 0;
             //     var stock = parseFloat($input.closest('tr').data('occupied')) || 0;
-                
+
 
             //     if (qty > stock) {
             //         alert("Quantity must not be greater than the requested stock.");
             //         $input.val(0);
-            //         return; 
+            //         return;
             //     }
 
             //     if (qty <= 0) {
@@ -840,7 +943,7 @@
                                 row += "<tr  "+disabled_row+" data-occupied = "+totalOccupied+" data-id = "+datas[j].supplieritem_id+" data-movement_id = "+datas[j].movement_id+" data-type = "+datas[j].type+" data-qty = "+datas[j].qty+">";
                             if(isFullyReleased)
                                 row += "<td style = 'text-align: center'><input data-qty = "+datas[j].qty+" data-type = "+datas[j].type+" data-supplieritem_id= "+datas[j].supplieritem_id+"  class = 'checkboxes' style = 'width: 20px; height: 20px;' type = 'checkbox' value = "+datas[j].movement_id+"  name = 'itemCheck1' id = 'itemCheck1' checked disabled readonly/></td>";
-                            else 
+                            else
                                 row += "<td style = 'text-align: center'><input data-qty = "+datas[j].qty+"    data-type = "+datas[j].type+" data-supplieritem_id= "+datas[j].supplieritem_id+"  class = 'checkboxes' style = 'width: 20px; height: 20px;' type = 'checkbox' value = "+datas[j].movement_id+"  name = 'itemCheck' id = 'itemCheck'/></td>";
                             row += "<td>"+datas[j].dateTransact+"</td>";
                             row += "<td>"+datas[j].item+"</td>";
@@ -850,23 +953,23 @@
                             var status = "<span class = 'badge badge-danger'>CANCELLED</span>";
                             var reasonforcancel = "-";
 
-                            
+
                             if(type == 1) status = "<span class = 'badge badge-primary'>REQUESTING</span>";
-                            if(type != 1 && isFullyReleased) 
+                            if(type != 1 && isFullyReleased)
                             {
                                 status = `<div class = "justify-content-center mb-0">
                                             <span class = 'badge badge-success'>FULLY RELEASED</span>
                                             <span class = 'badge badge-danger s-cancelled' data-value = "${datas[j].totalCancelled}">${datas[j].totalCancelled}  - CANCELLED</span>
                                         </div>`;
                             }
-                            if(type != 1 && !isFullyReleased) 
+                            if(type != 1 && !isFullyReleased)
                             {
                                 status = `<div class = "justify-content-center mb-0">
                                             <span class = 'badge badge-warning'>${datas[j].totalReleased} - PARTIALLY RELEASED</span>
                                             <span class = 'badge badge-danger s-cancelled' data-value = "${datas[j].totalCancelled}">${datas[j].totalCancelled}  - CANCELLED</span>
                                         </div>`;
                             }
-                            if(type == 5) 
+                            if(type == 5)
                             {
                                 reasonforcancel = datas[j].reasonforCancel == null ? "-" : datas[j].reasonforCancel;
                                 status = `<div class = "justify-content-center mb-0">
@@ -874,22 +977,22 @@
                                             <span class = 'badge badge-danger s-cancelled' data-value = "${datas[j].totalCancelled}">${datas[j].totalCancelled}  - CANCELLED</span>
                                         </div>`;
                             }
-                            
+
                             const remainingQty = datas[j].qty - datas[j].totalReleased;
                             row += "<td style = 'text-align: center'>"+status+"</td>";
                             row += "<td class = 't-citems text-align-center fit'><input class = 'form-control totalReleased' data-qty = "+datas[j].qty+" type = 'number' min='0'  name = 'cancelledItems' id = 'cancelledItems' required  data-type = "+datas[j].type+" data-supplieritem_id= "+datas[j].supplieritem_id+"  value = '' data-movement_id = "+datas[j].movement_id+" max="+remainingQty+"></input></td>";
                             row += "<td contenteditable = 'true' class = 'text-center reasonforcancel'>"+reasonforcancel+"</td>";
                             row += "</tr>";
-                          
 
-                           
+
+
                             j++;
 
-                           
-                            
+
+
                         }
                         $("#tblrequest_items_tbody").html(row);
-                        
+
                     },
                     error: function(resp)
                     {
@@ -921,9 +1024,13 @@
                 $(".v-error").html("");
                 $("input").removeClass('is-invalid');
                 $("select").removeClass('is-invalid');
-            }     
+            }
             function showModal()
             {
+                // Reset highlighting when modal opens
+                resetTransactionHighlighting();
+                $("#selected_itemtype").val("");
+
                 $("#modal").modal({
                     backdrop: 'static',
                     keyboard: false,
@@ -937,7 +1044,7 @@
 
             function triggerRelease() {
                 $("#btn_releaseReport").click(function(e){
-                
+
                     var dateRequest = $("#_date").val();
                     var user_id = $("#_userid").val();
                     window.open("/admin/requesting/report/"+dateRequest+"/"+user_id, "_blank");
@@ -956,7 +1063,7 @@
                     dataType: 'json',
                     success: function(data)
                     {
-                        $("#modalLabel").text('Edit department');    
+                        $("#modalLabel").text('Edit department');
                         show_allValue(data);
                         showModal();
                     },

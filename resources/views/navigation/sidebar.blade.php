@@ -16,7 +16,7 @@
          background-color: #eee; /* Background color for active link */
          color: #338ecf; /* Text color for active link */
      }
-     
+
 </style>
 
 <nav class="sb-sidenav accordion sb-sidenav-success" id="sidenavAccordion" style = "background-color: #83b2b7" >
@@ -31,7 +31,7 @@
         <a class="nav-link" id = "s_items" href="{{ route('items.index') }}" >
             <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
             &nbsp;&nbsp;
-            Manage Items&nbsp;&nbsp; 
+            Manage Items&nbsp;&nbsp;
         </a>
         <!-- <a class="nav-link" id = "s_reqs" href="{{ route('requisitions.index') }}" >
             <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
@@ -71,3 +71,64 @@
         <b>{{ Auth::user()->fullname }}</b>
     </div>
 </nav>
+
+<script>
+$(document).ready(function() {
+    // Function to load requisition notifications
+    function loadRequisitionNotifications() {
+        $.ajax({
+            url: '{{ route("requestingitems.notification") }}',
+            type: 'GET',
+            dataType: 'json',
+            cache: false,
+            timeout: 3000, // 3 second timeout
+            beforeSend: function() {
+                console.log('Loading requisition notifications...');
+            },
+            success: function(data) {
+                try {
+                    console.log('Requisition notification data received:', data);
+                    if (data && typeof data.notif !== 'undefined') {
+                        updateRequisitionBadge(data.notif);
+                        console.log('Updated requisition badge with count:', data.notif);
+                    } else {
+                        console.log('No valid notification data received');
+                        $("#notif").hide();
+                    }
+                } catch (e) {
+                    console.error('Error processing requisition notification data:', e);
+                    $("#notif").hide();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching requisition notifications:', error);
+                console.error('Status:', status);
+                console.error('Response:', xhr.responseText);
+                // Don't show error to user, just hide the badge
+                $("#notif").hide();
+            }
+        });
+    }
+
+    // Function to update the requisition notification badge
+    function updateRequisitionBadge(count) {
+        const badge = $("#notif");
+        console.log('Updating badge with count:', count);
+        if (count > 0) {
+            badge.text(count);
+            badge.show();
+            console.log('Badge shown with count:', count);
+        } else {
+            badge.hide();
+            console.log('Badge hidden');
+        }
+    }
+
+    // Make the function globally available so it can be called from other scripts
+    window.loadRequisitionNotifications = loadRequisitionNotifications;
+
+    // Initial load and periodic refresh for requisition notifications
+    loadRequisitionNotifications();
+    setInterval(loadRequisitionNotifications, 30000); // Refresh every 30 seconds
+});
+</script>

@@ -31,9 +31,9 @@ class AdminSetupController extends Controller
             // Create positions if they don't exist
             $this->createPositionIfNotExists('ADMIN', 1);
             $this->createPositionIfNotExists('TEACHER', 2);
-            $this->createPositionIfNotExists('PROPERTY CUSTODIAN', 3);
-            $this->createPositionIfNotExists('PRINCIPAL', 4);
-            $this->createPositionIfNotExists('STUDENT', 5);
+            // $this->createPositionIfNotExists('PROPERTY CUSTODIAN', 3);
+            // $this->createPositionIfNotExists('PRINCIPAL', 4);
+            // $this->createPositionIfNotExists('STUDENT', 5);
 
             // Create departments if they don't exist
             $this->createDepartmentIfNotExists('SUPPLY/PROCUREMENT OFFICE', 1);

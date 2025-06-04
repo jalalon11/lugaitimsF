@@ -174,25 +174,36 @@ class ItemController extends Controller
             $image = "";
             $temp = "";
             $item_id = "";
+            $hasNewImage = false;
+
             if($request->hasFile('image'))
             {
                 $image_name = $request->image->getClientOriginalName();
                 $request->file('image')->storeAs('upload_images', $image_name, 'public');
+                $hasNewImage = true;
                 // $request->image->move(public_path('upload_images'), $image_name);
             }
+
             if(!empty($request->item_id))
             {
                 $toUpdate = [];
-                if(is_null($image))
+                if(!$hasNewImage)
                 {
+                    // No new image uploaded, keep existing image
                     $toUpdate = [
                         'item'=>strtoupper($request->item),
                         'unit'=>strtoupper($request->unit),
                         'brand'=>strtoupper($request->brand),
                     ];
+
+                    // If there's a current_image value, preserve it
+                    if($request->current_image && $request->current_image !== '') {
+                        $toUpdate['image'] = $request->current_image;
+                    }
                 }
                 else
                 {
+                    // New image uploaded, update with new image
                     $toUpdate = [
                         'item'=>strtoupper($request->item),
                         'unit'=>strtoupper($request->unit),

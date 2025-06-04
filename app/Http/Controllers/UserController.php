@@ -7,9 +7,10 @@ use App\Models\User;
 use App\Models\Position;
 use Yajra\Datatables\DataTables;
 use Illuminate\Support\Facades\Validator;
-use DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Auth;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use PDO;
 
 class UserController extends Controller
@@ -94,7 +95,7 @@ class UserController extends Controller
                     // $html .= '<button type = "button" data-id = '.$row->purchaser_id.' class = "btn btn-danger btn-sm delete"><i class = "fas fa-trash"></i></button>';
                     $html .= "</td>";
                     return $html;
-                })      
+                })
                 ->addColumn('position', function($row){
                     return $row->position;
                 })
@@ -105,7 +106,7 @@ class UserController extends Controller
     {
         return User::all();
     }
-  
+
     public function get_allUsersData($department_id)
     {
         $sql = DB::select('select users.*, users.id as purchaser_id, positions.*, departments.*
@@ -143,70 +144,93 @@ class UserController extends Controller
     {
         //
     }
-    
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
+        // Debug: Log the incoming request data
+        Log::info('User creation request:', $request->all());
+
         $validatedData = [];
         $data = [];
-    
-        if ($request->purchaser_id !== null) {
+
+        if ($request->purchaser_id !== null && $request->purchaser_id !== '') {
             $validatedData = [
                 'fullname' => 'required|unique:users,fullname,' . $request->purchaser_id . ',id',
-                'email' => 'required|unique:users,email,' . $request->purchaser_id . ',id',
-                'position' => 'required',
-                'contact_number' => 'required',
-                '_departmentID' => 'required',
+                'email' => 'required|email|unique:users,email,' . $request->purchaser_id . ',id',
+                'position' => 'required|exists:positions,id',
+                'contact_number' => 'required|min:10',
+                '_departmentID' => 'required|exists:departments,id',
             ];
         } else {
             $validatedData = [
-                'fullname' => 'required|unique:users',
-                'email' => 'required|unique:users',
-                'position' => 'required',
-                'contact_number' => 'required',
-                '_departmentID' => 'required',
+                'fullname' => 'required|string|max:255',
+                'email' => 'required|email|unique:users',
+                'position' => 'required|exists:positions,id',
+                'contact_number' => 'required|min:10',
+                '_departmentID' => 'required|exists:departments,id',
             ];
         }
-    
+
         $validator = Validator::make($request->all(), $validatedData);
         $status = false;
         $msg = "";
-    
+
         if ($validator->fails()) {
+            Log::error('User validation failed:', $validator->errors()->toArray());
             $msg = $validator->messages();
         } else {
-            // $positionData = Position::where('id', $request->position)->first();
-            // $positionData = !empty($positionData) ? $positionData->id : 0;
-            // $position = Position::updateOrCreate(['id' => $positionData], [
-            //     'position' => strtoupper($request->position),
-            // ]);
-            $position_id  = (int) $request->position;
-            // Determine the role based on the position
-            $role = $position_id;
-    
-            User::updateOrCreate(['id' => $request->purchaser_id], [
-                'fullname' => strtoupper($request->fullname),
-                'position_id' => $position_id,
-                'department_id' => $request->_departmentID,
-                'role' => $role, // Set role based on the position
-                'email' => $request->email,
-                'contact_number' => $request->contact_number,
-                'username' => $request->email,
-                'password' => Hash::make('password'),
-            ]);
-    
-            $status = true;
-            $msg = "Purchaser has been successfully saved!";
+            try {
+                $position_id = (int) $request->position;
+                // Determine the role based on the position
+                $role = $position_id;
+
+                if ($request->purchaser_id && $request->purchaser_id !== '') {
+                    // Update existing user
+                    $user = User::find($request->purchaser_id);
+                    if ($user) {
+                        $user->update([
+                            'fullname' => strtoupper($request->fullname),
+                            'position_id' => $position_id,
+                            'department_id' => $request->_departmentID,
+                            'role' => $role,
+                            'email' => $request->email,
+                            'contact_number' => $request->contact_number,
+                            'username' => $request->email,
+                            'password' => Hash::make('password'),
+                        ]);
+                    }
+                } else {
+                    // Create new user
+                    $user = User::create([
+                        'fullname' => strtoupper($request->fullname),
+                        'position_id' => $position_id,
+                        'department_id' => $request->_departmentID,
+                        'role' => $role,
+                        'email' => $request->email,
+                        'contact_number' => $request->contact_number,
+                        'username' => $request->email,
+                        'password' => Hash::make('password'),
+                    ]);
+                }
+
+                Log::info('User created successfully:', ['user_id' => $user->id]);
+                $status = true;
+                $msg = "User has been successfully saved!";
+            } catch (\Exception $e) {
+                Log::error('User creation failed:', ['error' => $e->getMessage()]);
+                $msg = "Failed to create user: " . $e->getMessage();
+            }
         }
-    
+
         return response()->json([
             'status' => $status,
             'messages' => $msg,
         ]);
     }
-    
+
 
     /**
      * Display the specified resource.

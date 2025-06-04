@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use DB;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\ItemCategory;
 use App\Models\Movements;
 use Carbon\Carbon;
@@ -124,21 +125,38 @@ class PrintController extends Controller
     // } 
     public function get_report($month, $year, $category, $week_number)
     {
-        $m = $month[0];
-        $sql = $this->get_monthlyFromDB($month, $year, $category);
-      
-        if($week_number != 0)
+        // Add logging for debugging
+        Log::info('Report request received', [
+            'month' => $month,
+            'year' => $year,
+            'category' => $category,
+            'week_number' => $week_number
+        ]);
+
+        $sql = [];
+
+        if($week_number != 0) {
+            // Weekly report
+            Log::info('Generating weekly report');
             $sql = $this->get_weeklyFromDB($year, $category, $month, $week_number);
-        else
-        {
-            if($month == "Q1" || $month == "Q2" || $month == "Q3" || $month == "Q4")
-            {
-                $month = $month[1];
-                $sql = $this->get_quarterlyFromDB($month, $year, $category);
-            }
-            if($month === "N" AND $year !== "")
+        } else {
+            if($month == "Q1" || $month == "Q2" || $month == "Q3" || $month == "Q4") {
+                // Quarterly report
+                Log::info('Generating quarterly report');
+                $quarter_num = $month[1];
+                $sql = $this->get_quarterlyFromDB($quarter_num, $year, $category);
+            } else if($month === "N" AND $year !== "") {
+                // Yearly report
+                Log::info('Generating yearly report');
                 $sql = $this->get_yearlyFromDB($year, $category);
+            } else {
+                // Monthly report
+                Log::info('Generating monthly report');
+                $sql = $this->get_monthlyFromDB($month, $year, $category);
+            }
         }
+
+        Log::info('Report data count: ' . count($sql));
         return response()->json($sql);
     }
     public function get_reportPrint($month, $year, $category, $week_number)
@@ -197,8 +215,8 @@ class PrintController extends Controller
                         LEFT JOIN items on items.id = supplier_items.item_id
                         LEFT JOIN suppliers on suppliers.id = supplier_items.supplier_id
                         LEFT JOIN itemcategories on itemcategories.id = supplier_items.category_id
-                        LEFT JOIN departments on departments.id = users.id
-                        WHERE MONTH(m.created_at) = "'.$month.'" AND YEAR(m.created_at) =  "'.$year.'" AND itemcategories.id = '.$category.' AND supplier_items.status != 0');
+                        LEFT JOIN departments on departments.id = users.department_id
+                        WHERE MONTH(m.created_at) = "'.$month.'" AND YEAR(m.created_at) =  "'.$year.'" AND itemcategories.id = '.$category.' AND supplier_items.status != 0 AND m.type IN (2, 3, 5)');
     return $sql;    
 }
     public function get_yearlyFromDB($year, $category)
@@ -210,8 +228,8 @@ class PrintController extends Controller
                         LEFT JOIN items on items.id = supplier_items.item_id
                         LEFT JOIN suppliers on suppliers.id = supplier_items.supplier_id
                         LEFT JOIN itemcategories on itemcategories.id = supplier_items.category_id
-                        LEFT JOIN departments on departments.id = users.id
-                        WHERE YEAR(movements.created_at) =  "'.$year.'" AND itemcategories.id = '.$category.' AND supplier_items.status != 0');
+                        LEFT JOIN departments on departments.id = users.department_id
+                        WHERE YEAR(m.created_at) =  "'.$year.'" AND itemcategories.id = '.$category.' AND supplier_items.status != 0 AND m.type IN (2, 3, 5)');
         return $sql;
     }
     public function get_quarterlyFromDB($quarter, $year, $category)
@@ -223,37 +241,53 @@ class PrintController extends Controller
                         LEFT JOIN items on items.id = supplier_items.item_id
                         LEFT JOIN suppliers on suppliers.id = supplier_items.supplier_id
                         LEFT JOIN itemcategories on itemcategories.id = supplier_items.category_id
-                        LEFT JOIN departments on departments.id = users.id
-                        WHERE QUARTER(m.created_at) = "'.$quarter.'" AND YEAR(m.created_at) =  "'.$year.'" AND itemcategories.id = '.$category.' AND supplier_items.status != 0');
+                        LEFT JOIN departments on departments.id = users.department_id
+                        WHERE QUARTER(m.created_at) = "'.$quarter.'" AND YEAR(m.created_at) =  "'.$year.'" AND itemcategories.id = '.$category.' AND supplier_items.status != 0 AND m.type IN (2, 3, 5)');
         return $sql;
     }
     public function get_weeklyFromDB($year, $category, $month, $week_number)
     {
-        $firstDayOfMonth = Carbon::createFromDate($year, $month, 1);
-        $startOfWeek = $firstDayOfMonth->copy()->addWeeks($week_number -1)->startOfWeek();
-        $endOfWeek = $startOfWeek->copy()->endOfWeek();
+        // Simplified approach: Calculate week ranges based on 7-day periods from the start of the month
+        $firstDayOfMonth = Carbon::createFromDate($year, $month, 1)->startOfDay();
 
-        $sql = Movements::select(
-                                    DB::raw('DISTINCT DATE_FORMAT(movements.created_at, "%m-%d-%Y") AS dateRequest'),
-                                    'movements.*',
-                                    'itemcategories.*',
-                                    'items.*',
-                                    'users.*',
-                                    'departments.*',
-                                    'supplier_items.*',
-                                    'suppliers.*'
-                                )
-                                ->join('supplier_items', 'supplier_items.id', '=', 'movements.supplieritem_id')
-                                ->join('suppliers', 'suppliers.id', '=', 'supplier_items.supplier_id')
-                                ->join('items', 'items.id', '=', 'supplier_items.item_id')
-                                ->join('itemcategories', 'itemcategories.id', '=', 'supplier_items.category_id')
-                                ->join('users', 'users.id', '=', 'movements.user_id')
-                                ->join('departments', 'departments.id', '=', 'users.department_id')
-                                ->whereBetween('movements.created_at', [$startOfWeek, $endOfWeek])
-                                ->where('itemcategories.id', $category)
-                                ->where('supplier_items.status', '!=', 0)
-                                ->get();
-    
+        // Calculate start and end dates for the specified week
+        $startOfWeek = $firstDayOfMonth->copy()->addDays(($week_number - 1) * 7);
+        $endOfWeek = $startOfWeek->copy()->addDays(6)->endOfDay();
+
+        // Ensure we don't go beyond the current month
+        $lastDayOfMonth = $firstDayOfMonth->copy()->endOfMonth();
+        if ($endOfWeek->gt($lastDayOfMonth)) {
+            $endOfWeek = $lastDayOfMonth->copy()->endOfDay();
+        }
+
+        // Log the date range for debugging
+        Log::info('Weekly report date range', [
+            'start' => $startOfWeek->format('Y-m-d H:i:s'),
+            'end' => $endOfWeek->format('Y-m-d H:i:s'),
+            'month' => $month,
+            'year' => $year,
+            'week_number' => $week_number,
+            'category' => $category
+        ]);
+
+        // Use raw SQL query to match the pattern of other methods and ensure consistency
+        // Include: type 2 (partially released), type 3 (released), type 5 (cancelled)
+        // Exclude: type 1 (requesting), type 4 (wasted)
+        $sql = DB::select('SELECT DISTINCT DATE_FORMAT(m.created_at, "%m-%d-%Y") as dateRequest, m.*, itemcategories.*, items.*, users.*, departments.*, supplier_items.*, suppliers.*
+                        FROM movements m
+                        LEFT JOIN users on users.id = m.user_id
+                        LEFT JOIN supplier_items on supplier_items.id = m.supplieritem_id
+                        LEFT JOIN items on items.id = supplier_items.item_id
+                        LEFT JOIN suppliers on suppliers.id = supplier_items.supplier_id
+                        LEFT JOIN itemcategories on itemcategories.id = supplier_items.category_id
+                        LEFT JOIN departments on departments.id = users.department_id
+                        WHERE m.created_at BETWEEN ? AND ?
+                        AND itemcategories.id = ?
+                        AND supplier_items.status != 0
+                        AND m.type IN (2, 3, 5)',
+                        [$startOfWeek->format('Y-m-d H:i:s'), $endOfWeek->format('Y-m-d H:i:s'), $category]);
+
+        Log::info('Weekly report query result count: ' . count($sql));
         return $sql;
     }
     public function monthlyreport_page()

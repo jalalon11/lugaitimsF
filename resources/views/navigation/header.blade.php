@@ -19,6 +19,12 @@
     <!-- <script src="{{ asset('admintemplate/js/bootstrap.bundle.min.js') }}" crossorigin="anonymous"></script> -->
     <link href="{{ asset('admintemplate/css/jquery-ui.css')}}" rel="stylesheet" />
     <script src="{{ asset('admintemplate/js/jquery.js') }}"></script>
+    <!-- jQuery CDN fallback -->
+    <script>
+        if (typeof jQuery == 'undefined') {
+            document.write('<script src="https://code.jquery.com/jquery-3.6.0.min.js"><\/script>');
+        }
+    </script>
 
     @include('scripts/clock')
     <!-- <script src="{{ asset('admintemplate/js/jquery-ajax.min.js') }}"></script> -->
@@ -70,7 +76,7 @@
             text-transform: uppercase;
           }
           input[type=email]{
-            text-transform: none; 
+            text-transform: none;
           }
           /* #table td,tr,th {
           font-size: 12px;word-break: break-word; word-break: break-all; white-space: normal;

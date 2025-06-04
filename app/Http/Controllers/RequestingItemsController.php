@@ -6,6 +6,7 @@ use App\Models\RequestingItems;
 use Illuminate\Http\Request;
 use Yajra\Datatables\Datatables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\Movements;
 class RequestingItemsController extends Controller
@@ -100,42 +101,73 @@ class RequestingItemsController extends Controller
     }
     public function realtime_notification()
     {
-        $notif = Movements::where(['notification'=>1, 'type'=>1])->count();
-        $lowstock = DB::select("SELECT supplier_items.id as lowstocks, items.*, supplier_items.* from supplier_items, items where items.id = supplier_items.item_id and supplier_items.stock <=5 order by supplier_items.updated_at desc");
-        $years = DB::select("SELECT TIMESTAMPDIFF(YEAR, supplier_items.date, CURDATE())  AS age, id, no_ofYears FROM supplier_items");
-        foreach($years as $y)
-        {
-            if($y->age > 0)
-            {
-                if($y->age >= $y->no_ofYears)
-                {
-                    DB::table('supplier_items')->where('id', $y->id)->update(array('status'=>0));
+        try {
+            // Count all movements that need attention:
+            // 1. Type 1 (requesting) - always needs attention
+            // 2. Type 7 (partially released) with notification = 1 - needs attention
+            $requestingCount = Movements::where('type', 1)->count();
+            $partiallyReleasedCount = Movements::where(['type' => 7, 'notification' => 1])->count();
+            $notif = $requestingCount + $partiallyReleasedCount;
 
-                    // Check if movements exist for this item and update them
-                    if (Movements::where('supplieritem_id', $y->id)->exists()) {
-                        DB::table('movements')->where('supplieritem_id', $y->id)->update(array('dateWasted'=>Carbon::now()));
+            // Get low stock items (optional, for additional info)
+            $lowstock = DB::select("SELECT supplier_items.id as lowstocks, items.*, supplier_items.* from supplier_items, items where items.id = supplier_items.item_id and supplier_items.stock <=5 order by supplier_items.updated_at desc");
+
+            // Handle expired items
+            $years = DB::select("SELECT TIMESTAMPDIFF(YEAR, supplier_items.date, CURDATE())  AS age, id, no_ofYears FROM supplier_items");
+            foreach($years as $y)
+            {
+                if($y->age > 0)
+                {
+                    if($y->age >= $y->no_ofYears)
+                    {
+                        DB::table('supplier_items')->where('id', $y->id)->update(array('status'=>0));
+
+                        // Check if movements exist for this item and update them
+                        if (Movements::where('supplieritem_id', $y->id)->exists()) {
+                            DB::table('movements')->where('supplieritem_id', $y->id)->update(array('dateWasted'=>Carbon::now()));
+                        }
                     }
                 }
             }
+
+            $data = [
+                'notif' => $notif,
+                'requestingCount' => $requestingCount,
+                'partiallyReleasedCount' => $partiallyReleasedCount,
+                'lowstock' => count($lowstock),
+                'lowstocks' => $lowstock
+            ];
+
+            return response()->json($data);
+        } catch (\Exception $e) {
+            Log::error('Error in realtime_notification: ' . $e->getMessage());
+            return response()->json(['notif' => 0, 'error' => 'Failed to load notifications'], 500);
         }
-        $data = ['notif'=>$notif, 'lowstock'=>count($lowstock), 'lowstocks'=>$lowstock];
-        return response()->json($data);
     }
     public function resetNotification(Request $request)
     {
+        // Only reset notifications for items that are fully processed (type 3 = fully released, type 5 = cancelled)
+        // Do NOT reset for type 1 (requesting) or type 7 (partially released) as they still need attention
         $result = DB::select('select * from movements where date_format(movements.created_at, "%m-%d-%Y") = "'.$request->dateRequest.'" and notification = 1 and user_id = '.$request->user_id.'');
         foreach($result as $res)
         {
-            if($res->type != 7)
+            // Only reset notification if the item is fully processed (type 3 or 5)
+            if($res->type == 3 || $res->type == 5)
             {
                 $movement = Movements::find($res->id);
                 $movement->notification = 0;
                 $movement->update();
             }
         }
+
+        // Check if there are still pending items (type 1 = requesting) for this user/date
+        $stillPending = DB::select('select count(*) as count from movements where date_format(movements.created_at, "%m-%d-%Y") = "'.$request->dateRequest.'" and type = 1 and user_id = '.$request->user_id.'');
+        $hasPendingItems = $stillPending[0]->count > 0;
+
         return response()->json([
             'data'=>$result,
             'status'=>true,
+            'hasPendingItems'=>$hasPendingItems,
         ]);
     }
     public function create()
@@ -171,10 +203,17 @@ class RequestingItemsController extends Controller
         {
             $result = DB::select('select * from movements where date_format(movements.created_at, "%m-%d-%Y") = "'.$req->dateRequest.'" and user_id = '.$req->user_id.'');
             $notification = 0;
+
+            // Check if there are any items that still need attention
             foreach($result as $notif)
             {
-                if($notif->notification == 1) $notification = 1;
+                // Show notification if there are requesting items (type 1) or partially released items (type 7)
+                if($notif->type == 1 || ($notif->type == 7 && $notif->notification == 1)) {
+                    $notification = 1;
+                    break; // Found at least one item that needs attention
+                }
             }
+
             $userinfo = $this->get_allUserInfo($req->user_id);
             $data[] = [
               'purchaser_id'=>$req->user_id,

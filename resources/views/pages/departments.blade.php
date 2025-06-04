@@ -71,10 +71,10 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <ul id = "error-messages" style = "color: red"> 
+                <ul id = "error-messages" style = "color: red">
 
                 </ul>
-                
+
                 <!-- Modal Body - Your Form Goes Here -->
                 <form id = "department-form" method = "post" action="">
                     <input autocomplete="off" type="hidden" name = "_token" value = "{{ csrf_token() }}">
@@ -107,7 +107,7 @@
                     input[type=text], input[type=tel],input[type=email],table,tr,th,td{
                         font-size: 12px;
                     }
-                    
+
                 </style>
                 <!-- Modal Header -->
                 <div class="modal-header">
@@ -115,11 +115,11 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                    
+
                 </div>
                 <div class="modal-body">
                     <h6 >Department: &nbsp;&nbsp;<u id="purchaser-modalDept"><b></b></u></h6>
-                    <ul id = "error-messages" style = "color: red"> 
+                    <ul id = "error-messages" style = "color: red">
 
                     </ul>
                     <style>
@@ -129,7 +129,7 @@
                         }
                         select{
                             height: 12px;
-                            
+
                         }
                     </style>
 
@@ -174,7 +174,7 @@
                                         <label for="contact_number">Contact Number (09)</label>
                                         <input autocomplete="off" onkeyup="$(this).removeClass('is-invalid'); $('#contact_number-msg').html('');" type="tel" maxlength = "10" pattern = "^(9|\+639)\d{9}$" name = "contact_number" id="contact_number" placeholder="Contact Number" class="form-control">
                                         <span class = "v-error" style = "color:red;" id = "contact_number-msg"></span>
-                                    </div>  
+                                    </div>
                                 </div>
                                 <div class="col-md-1">
                                     <div class="form-group">
@@ -211,9 +211,13 @@
     @include('navigation/footer')
     <script  type="text/javascript">
         $(document).ready(function(){
+            // Test if jQuery is working
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('CSRF token:', $('meta[name="csrf-token"]').attr('content'));
+
             $.ajaxSetup({
                 headers: {
-                    'X-CSRF-Token':$("input[name=_token").val()
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             })
             $("#s_departments").addClass("active");
@@ -234,7 +238,7 @@
                     table.fnDraw();
                 });
             }
-            function AutoReload() 
+            function AutoReload()
             {
                 RefreshTable('#table', '{!! route("datatables.departments") !!}');
             }
@@ -259,7 +263,7 @@
                                 columns: [0] // Set columns 0, 2, and 3 for export
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                         {
                             extend: 'print',
                             exportOptions: {
@@ -268,14 +272,14 @@
                             className: 'btn btn-secondary btn-sm',
                             orientation: 'portrait',
                             pageSize: 'LEGAL',
-                        },  
+                        },
                         {
                             extend: 'excel',
                             exportOptions: {
                                 columns: [0] // Set columns 0, 2, and 3 for export
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                     ],
                     initComplete: function () {
                         this.api().buttons().container().appendTo('#export_buttons');
@@ -328,7 +332,7 @@
                 $(".v-error").html("");
                 $("input").removeClass('is-invalid');
                 $("select").removeClass('is-invalid');
-            }           
+            }
             $("#department-form").on('submit', function(e){
                 e.preventDefault();
                 var formData = serializeForm($(this).serializeArray());
@@ -345,7 +349,7 @@
                             AutoReload();
                             resetInputFields();
                             $("#department-modal").modal('hide');
-                            responseMessage("success", resp.messages) 
+                            responseMessage("success", resp.messages)
                         }
                         else
                         {
@@ -384,7 +388,7 @@
                     dataType: 'json',
                     success: function(data)
                     {
-                        $("#department-modalLabel").text('Edit department');    
+                        $("#department-modalLabel").text('Edit department');
                         show_allValue(data);
                         showModal();
                     },
@@ -402,9 +406,9 @@
                 show_purchaserDataTable(department_id);
                 resetPurchaserForm();
                 show_allPositions();
-                $("#purchaser-modalLabel").text('Create New User');   
+                $("#purchaser-modalLabel").text('Create New User');
                 show_departmentTitle(department_id);
-                showPurchaserModal();  
+                showPurchaserModal();
             })
             function show_departmentTitle(department_id)
             {
@@ -462,7 +466,7 @@
                 });
             }
 
-            function AutoReloadPurchaserTable(department_id) 
+            function AutoReloadPurchaserTable(department_id)
             {
                 RefreshTable('#tbl_purchasers', '/datatables/users/'+department_id);
             }
@@ -491,7 +495,7 @@
                                 columns: [0, 1, 2, 3, 4] // Set columns 0, 2, and 3 for export
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                         {
                             extend: 'print',
                             exportOptions: {
@@ -500,14 +504,14 @@
                             className: 'btn btn-secondary btn-sm',
                             orientation: 'portrait',
                             pageSize: 'LEGAL',
-                        },  
+                        },
                         {
                             extend: 'excel',
                             exportOptions: {
                                 columns: [0, 1, 2, 3, 4] // Set columns 0, 2, and 3 for export
                             },
                             className: 'btn btn-secondary btn-sm',
-                        },  
+                        },
                     ],
                     columns: [
                         { data: 'fullname', name: 'fullname'},
@@ -522,7 +526,14 @@
             $("#purchaser-form").on('submit', function(e){
                 e.preventDefault();
                     var formData = serializeForm($(this).serializeArray());
-                    console.log(formData)
+                    console.log('Form data being sent:', formData);
+
+                    // Validate required fields before sending
+                    if (!formData.fullname || !formData.position || !formData.email || !formData.contact_number) {
+                        alert('Please fill in all required fields');
+                        return;
+                    }
+
                     $.ajax({
                         url: '{{ route("users.store") }}',
                         type: 'post',
@@ -530,41 +541,49 @@
                         dataType: 'json',
                         success: function(resp)
                         {
+                            console.log('Server response:', resp);
                             if(resp.status)
                             {
                                 AutoReloadPurchaserTable(formData['_departmentID']);
-                                responseMessage("success", resp.messages) 
+                                responseMessage("success", resp.messages)
                                 resetPurchaserForm();
                             }
                             else
                             {
-                                $.each(resp.messages, function(key,value) {
-                                   if(key == "fullname")
-                                   {
-                                     $("#fullname").addClass('is-invalid');
-                                     $("#fullname-msg").html(value);
-                                   }
-                                   if(key == "position")
-                                   {
-                                     $("#position").addClass('is-invalid');
-                                     $("#position-msg").html(value);
-                                   }
-                                   if(key == "email")
-                                   {
-                                     $("#email").addClass('is-invalid');
-                                     $("#email-msg").html(value);
-                                   }
-                                   if(key == "contact_number")
-                                   {
-                                     $("#contact_number").addClass('is-invalid');
-                                     $("#contact_number-msg").html(value);
-                                   }
-                                });
+                                console.log('Validation errors:', resp.messages);
+                                if (typeof resp.messages === 'object' && resp.messages !== null) {
+                                    $.each(resp.messages, function(key,value) {
+                                       if(key == "fullname")
+                                       {
+                                         $("#fullname").addClass('is-invalid');
+                                         $("#fullname-msg").html(Array.isArray(value) ? value[0] : value);
+                                       }
+                                       if(key == "position")
+                                       {
+                                         $("#position").addClass('is-invalid');
+                                         $("#position-msg").html(Array.isArray(value) ? value[0] : value);
+                                       }
+                                       if(key == "email")
+                                       {
+                                         $("#email").addClass('is-invalid');
+                                         $("#email-msg").html(Array.isArray(value) ? value[0] : value);
+                                       }
+                                       if(key == "contact_number")
+                                       {
+                                         $("#contact_number").addClass('is-invalid');
+                                         $("#contact_number-msg").html(Array.isArray(value) ? value[0] : value);
+                                       }
+                                    });
+                                } else {
+                                    // If messages is a string, show it as a general error
+                                    responseMessage("error", resp.messages);
+                                }
                             }
                         },
-                        error: function(message)
+                        error: function(xhr, status, error)
                         {
-                            alert("Server Error");
+                            console.log('AJAX Error:', xhr.responseText);
+                            alert("Server Error: " + error);
                         }
                     })
             })

@@ -134,6 +134,7 @@
                     <input autocomplete="off" type="hidden" name = "movement_id" id = "movement_id" value = "">
                     <input autocomplete="off" type="hidden" name = "type" id = "type" value = "1">
                     <input autocomplete="off" type="hidden" name = "requisitionItem_id" id = "requisitionItem_id" value = "">
+                    <input autocomplete="off" type="hidden" name = "current_image" id = "current_image" value = "">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-4">
@@ -224,9 +225,15 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <label for="">Image<span style="color:red"></span></label>
-                                <img  style = "width: 150px; height: 150px; border: 1px solid;"  src="{{ asset('storage/upload_images/item.png') }}" alt="preview_image" id = "preview_image">
+                                <div style="position: relative;">
+                                    <img  style = "width: 150px; height: 150px; border: 1px solid;"  src="{{ asset('storage/upload_images/item.png') }}" alt="preview_image" id = "preview_image">
+                                    <div id="current_image_indicator" style="display: none; position: absolute; top: 5px; right: 5px; background: rgba(0,123,255,0.8); color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">
+                                        Current Image
+                                    </div>
+                                </div>
                                 <span class = "span_error" style ="color:red; font-size: 12px" id = "errmsg_image"></span>
                                 <input type="file" value = "" name="image" id="image" class="form-control">
+                                <small class="text-muted">Leave empty to keep current image</small>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -546,7 +553,7 @@
             });
             $.ajaxSetup({
                 headers: {
-                    'X-CSRF-Token':$("input[name=_token").val()
+                    'X-CSRF-Token':$("input[name=_token]").val()
                 }
             })
             function serializeForm(serializeArray)
@@ -590,7 +597,7 @@
         $(document).ready(function(){
             $.ajaxSetup({
                 headers: {
-                    'X-CSRF-Token':$("input[name=_token").val()
+                    'X-CSRF-Token':$("input[name=_token]").val()
                 }
             })
             $("#s_items").addClass("active");
@@ -897,6 +904,8 @@
                 $("#item_id").val("");
                 $("#supplieritem_id").val("");
                 $("#movement_id").val("");
+                $("#current_image").val(""); // Clear current image
+                $("#current_image_indicator").hide(); // Hide indicator
                 $(".v-error").html("");
                 $("input").removeClass('is-invalid');
                 $("select").val("");
@@ -983,11 +992,16 @@
                 $("#supplieritem_id").val(data[0].supplieritem_id);
                 $("#item_id").val(data[0].item_id);
 
-                if (data[0].image != null)
-                $("#preview_image").attr('src', '{{ asset('storage/upload_images/') }}/' + data[0].image);
-                else
+                // Store the current image name for editing
+                if (data[0].image != null) {
+                    $("#preview_image").attr('src', '{{ asset('storage/upload_images/') }}/' + data[0].image);
+                    $("#current_image").val(data[0].image); // Store current image name
+                    $("#current_image_indicator").show(); // Show indicator for existing image
+                } else {
                     $("#preview_image").attr('src', '{{ asset('storage/upload_images/item.png') }}');
-
+                    $("#current_image").val(''); // No current image
+                    $("#current_image_indicator").hide(); // Hide indicator
+                }
 
                 $("#item").val(data[0].item);
                 $("#date").val(data[0].date);
@@ -1161,6 +1175,10 @@
             $("#image").change(function(e){
                 block_image = e.target.files[0];
                 readURL(this);
+                // Hide the current image indicator when new image is selected
+                if(e.target.files[0]) {
+                    $("#current_image_indicator").hide();
+                }
             });
 
             function show_allUnits()
@@ -1383,11 +1401,17 @@
                 {
                     var formData = serializeForm($(this).serializeArray());
 
+                    // Add CSRF token explicitly
+                    formData._token = $("input[name=_token]").val();
+
                     $.ajax({
                         url: '{{ route("itemcategories.store") }}',
                         type: 'post',
                         data: formData,
                         dataType: 'json',
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
                         success: function(resp)
                         {
                             if(resp.status)
@@ -1395,22 +1419,44 @@
                                 AutoReloadCategory();
                                 reset_categoryForm();
                                 show_allCategoryList();
+                                show_allItemCategories(); // Refresh category dropdown
                                 responseMessage("success", resp.messages)
                             }
                             else
                             {
-                                $.each(resp.messages, function(key,value) {
-                                   if(key == "category")
-                                   {
-                                     $("#category").addClass('is-invalid');
-                                     $("#category-msg").html(value);
-                                   }
-                                });
+                                if(typeof resp.messages === 'object') {
+                                    $.each(resp.messages, function(key,value) {
+                                       if(key == "category")
+                                       {
+                                         $("#category").addClass('is-invalid');
+                                         $("#category-msg").html(Array.isArray(value) ? value[0] : value);
+                                       }
+                                    });
+                                } else {
+                                    alert('Error: ' + resp.messages);
+                                }
                             }
                         },
-                        error: function(message)
+                        error: function(xhr, status, error)
                         {
-                            alert("Server Error");
+                            console.log('AJAX Error:', xhr.responseText);
+                            console.log('Status:', status);
+                            console.log('Error:', error);
+
+                            // More detailed error handling
+                            if (xhr.status === 422) {
+                                var errors = xhr.responseJSON.errors || xhr.responseJSON.messages;
+                                if (errors) {
+                                    $.each(errors, function(key, value) {
+                                        $("#" + key).addClass('is-invalid');
+                                        $("#" + key + "-msg").html(Array.isArray(value) ? value[0] : value);
+                                    });
+                                }
+                            } else if (xhr.status === 419) {
+                                alert("Session expired. Please refresh the page and try again.");
+                            } else {
+                                alert("Server Error: " + error + "\nCheck console for details");
+                            }
                         }
                     })
                 }

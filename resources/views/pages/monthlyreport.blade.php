@@ -207,17 +207,31 @@
             month = $("#_quarter").val();
         }
 
-        if(month !== "" && year !== "" && category !== "")
-        {
+        // Enhanced validation for weekly reports
+        var isValid = false;
+        var errorMessage = "";
+
+        if ($("#month").val() === "WEEKLY") {
+            if (month !== "" && week_number !== "" && year !== "" && category !== "") {
+                isValid = true;
+            } else {
+                errorMessage = "Please select month, week, year, and category for weekly report";
+            }
+        } else if (month !== "" && year !== "" && category !== "") {
+            isValid = true;
+        } else {
+            errorMessage = "Please select month/quarter, category, and year";
+        }
+
+        if (isValid) {
             $("#a_print").show();
             $("#tbl_report").show();
+            console.log("Generating report with:", {month: month, year: year, category: category, week_number: week_number});
             showReport(month, year, category, week_number);
-        }
-        else 
-        {
+        } else {
             $("#tbl_report").hide();
             $("#a_print").hide();
-            alert("Please select month/quarter/weekly, category, and year");
+            alert(errorMessage);
         }
     });
 
@@ -241,11 +255,13 @@
     }
 
     function showReport(month, year, category, week_number) {
+        console.log("Making AJAX request to:", '/admin/monthly/report/'+month+'/'+year+'/'+category+'/'+week_number);
         $.ajax({
             type: 'get',
             url: '/admin/monthly/report/'+month+'/'+year+'/'+category+'/'+week_number,
             dataType: 'json',
             success: function(data){
+                console.log("Report data received:", data);
                 var html = "";
                 var unitvalue = 0;
                 var totalCost = 0;
@@ -283,6 +299,13 @@
                 tfoot += "<td align='right'>&#8369;&nbsp;"+ numberWithCommas(totalCost.toFixed(2)) +"</td>";
                 $("#total_res").html(tfoot);
                 $("#tbl_report tbody").html(html);
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error:", {xhr: xhr, status: status, error: error});
+                console.error("Response Text:", xhr.responseText);
+                alert("Error generating report: " + error);
+                $("#tbl_report").hide();
+                $("#a_print").hide();
             }
         });
     }
